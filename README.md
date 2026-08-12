@@ -1,0 +1,237 @@
+# AgentShield 🛡️
+
+**AI Agent Security Testing & Risk Analysis Platform**
+
+AgentShield is an enterprise-grade security testing framework designed to audit, evaluate, and quantify security risks in LLM-powered autonomous AI agents and agentic workflows operating in a **local, CI/CD, or controlled security testing environment**.
+
+---
+
+## 1. The Problem AgentShield Solves
+
+Traditional AI evaluation tools ask:
+> *"Did the LLM produce an offensive or toxic text response?"*
+
+Security engineers and developers building production AI agents need to ask:
+> **"Did the AI agent violate its intended security policy and access controls?"**
+
+AI agents combine LLMs with tool execution capabilities (`refund_order`, `send_email`, `query_database`). Relying on system prompts or LLM alignment as a primary security boundary is inherently flawed. 
+
+AgentShield treats AI agents as complex, non-deterministic software systems, systematically mapping their attack surfaces, testing for vulnerability exploitation, evaluating traces, and providing quantitative risk analysis.
+
+---
+
+## 2. Fundamental Security & Architectural Principles
+
+> 💡 **"LLM alignment is not authorization."**
+> 
+> The LLM or system prompt must NEVER be treated as the primary authorization boundary for privileged actions. Authorization MUST be enforced by a deterministic policy/authorization layer outside the LLM context.
+
+```
++-------------------------------------------------------------------------------+
+|                             UNSECURE PATTERN                                  |
+|                                                                               |
+|  [ User Prompt ] ---> [ LLM Agent ] ---> [ Direct Tool Execution ]            |
+|                                        (e.g., refund_order())                 |
+|  * High Risk: Relying on system prompt / LLM alignment as authorization boundary|
++-------------------------------------------------------------------------------+
+
++-------------------------------------------------------------------------------+
+|                             SECURE ARCHITECTURE                               |
+|                                                                               |
+|  [ User Prompt ] ---> [ LLM Agent ] ---> [ Policy / Auth Layer ] ---> [ Tool ]|
+|                                        (Deterministic Check)                  |
+|  * Secure: Authorization & permissions enforced independently of LLM reasoning|
++-------------------------------------------------------------------------------+
+```
+
+### Attack vs. Vulnerability Pipeline
+
+```
+Attack (Test Probe) ──► Agent Behavior ──► Evaluation (Rules + Judge) ──► Policy Violation? ──► Finding
+```
+
+Executing a security probe (attack) does NOT automatically mean a vulnerability exists. A **Finding** is created only when evaluation confirms that the agent's behavior breached defined policy boundaries.
+
+---
+
+## 3. High-Level System Architecture
+
+```
+User / Security Engineer / CI/CD Pipeline
+             │
+             ▼
+     [ AgentShield UI ]
+             │
+             ▼
+      [ API Layer ]
+             │
+             ▼
+   [ Scan Orchestrator ]
+             │
+     ┌───────┴──────────────┐
+     ▼                      ▼
+[ Discovery ] ───► [ Threat Model ]
+                            │
+                            ▼
+                    [ Attack Engine ]
+                            │
+                            ▼
+   [ Target Adapter ] ◄── (Normalized TargetResult) ──► [ Target AI Agent ]
+   (SSRF Protected)
+                            │
+                            ▼
+              [ Observation & Traces ]
+               (Black-Box / OTel Ready)
+                            │
+     ┌──────────────────────┴──────────────────────┐
+     ▼                                             ▼
+[ Detection Engine ]                      [ LLM Judge ]
+(Version-Controlled Rules)                (Semantic Rubric)
+     │                                             │
+     └──────────────────────┬──────────────────────┘
+                            │
+                            ▼
+                    [ Finding Engine ]
+                            │
+                            ▼
+                 [ Attack Path Engine ]
+                            │
+                            ▼
+                     [ Risk Engine ]
+                            │
+                            ▼
+                 [ Report & Remediation ]
+                            │
+                            ▼
+                 [ Regression Suite ]
+```
+
+---
+
+## 4. Architectural Component Isolation & Target Adapters
+
+* **Target Adapter Abstraction**: The core scanner engine never depends on a specific HTTP request/response JSON schema. The `TargetAdapter` converts framework-specific request/response formats into a normalized internal `TargetResult` representation.
+  * **Week 1 MVP**: `GenericHTTPAdapter` with target connector **SSRF Protection** (blocking metadata IPs like `169.254.169.254` and private subnets).
+  * **Future Extension Adapters**: Local Python, LangGraph, LangChain, CrewAI, OpenAI Agents, n8n, and MCP.
+* **Role of n8n**: **n8n** is an external workflow orchestration and automation layer (scheduling scans, triggering webhooks, sending alerts). n8n does **NOT** contain the core AgentShield scanning engine. Future async queues/workers are part of AgentShield's backend architecture and are separate from n8n.
+* **Security Rule Storage**: Week 1 security test probes and detection rules are **version-controlled files** (YAML/JSON/Python) in git for auditability, reproducibility, and simple CI deployment.
+
+---
+
+## 5. Week 1 MVP Scope
+
+The initial release focuses on establishing a clean **Modular Monolith** architecture:
+
+* **Target Support**: Generic HTTP REST AI Agent adapter with SSRF protection.
+* **Trace Mode**: Black-box response and header observation.
+* **Static Analysis**: Basic system prompt anti-pattern and tool schema checks.
+* **Dynamic Security Suite**: 20 targeted security test probes covering:
+  1. Direct Prompt Injection
+  2. System Prompt Leakage
+  3. Sensitive Information Disclosure (PII / Credentials)
+  4. Excessive Agency & Unauthorized Tool Misuse
+* **Evaluation**: Hybrid engine combining high-speed deterministic version-controlled rules with an optional LLM Judge.
+* **Output**: Machine-readable JSON findings, single-page HTML report, quantitative risk scoring, and evidence packaging.
+
+---
+
+## 6. Current Project Status & Roadmap
+
+| Phase | Milestone | Status | Key Deliverables |
+| :--- | :--- | :--- | :--- |
+| **Phase 1** | Architecture & Threat Modeling | 🟢 **Complete** | Specifications (`docs/architecture.md`, `docs/threat-model.md`, `docs/mvp-scope.md`) |
+| **Phase 2** | Core Modular Monolith Implementation | 🟡 *Next Up* | Python/FastAPI core engine, Target Adapter interface, 20 test probes |
+| **Phase 3** | Workflow Orchestration & Storage Expansion | ⚪ Planned | PostgreSQL support, n8n external triggers, OpenTelemetry trace normalization |
+| **Phase 4** | Advanced Agent Attack Surfaces | ⚪ Planned | Multi-agent cascade testing, MCP scanning, RAG poisoning, Memory probes |
+
+---
+
+## 7. Local Development
+
+### Prerequisites
+* **Python 3.11+** installed on your system.
+
+### Step-by-Step Setup
+
+1. **Create Virtual Environment**:
+   ```bash
+   # Windows / macOS / Linux
+   python -m venv .venv
+   ```
+
+2. **Activate Virtual Environment**:
+   * **Windows (PowerShell)**:
+     ```powershell
+     .\.venv\Scripts\Activate.ps1
+     ```
+   * **Windows (Command Prompt)**:
+     ```cmd
+     .\.venv\Scripts\activate.bat
+     ```
+   * **macOS / Linux**:
+     ```bash
+     source .venv/bin/activate
+     ```
+
+3. **Install Dependencies**:
+   ```bash
+   pip install -e .[dev]
+   ```
+   *Or install directly:*
+   ```bash
+   pip install fastapi uvicorn pydantic httpx pytest
+   ```
+
+4. **Run the API**:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+   The API will be available at `http://127.0.0.1:8000`. You can check the health status at `http://127.0.0.1:8000/health`.
+
+5. **Run Tests**:
+   ```bash
+   pytest
+   ```
+
+---
+
+## 8. Documentation Index
+
+Detailed architectural blueprints are available in the [`docs/`](./docs) directory:
+
+* 📄 [Architecture Specification](./docs/architecture.md) — System design, component responsibilities, lifecycle state machines, Target Adapter abstraction, SSRF protection, and scaling roadmap.
+* 📄 [Target Adapter Contract](./docs/target-contract.md) — TargetAdapter interface, TargetResult normalization, timeout lifecycle, SSRF security boundary, and error model.
+* 📄 [SSRF Security Boundary Spec](./docs/ssrf-security.md) — Outbound SSRF security boundary, policy rules, DNS resolution, redirect protection, and error mapping.
+* 📄 [REST API Endpoint Spec](./docs/api-routes.md) — POST /api/v1/scans REST endpoint, DTO request/response schemas, status codes, and error handling rules.
+* 📄 [API Contract Specification](./docs/api-contract.md) — DTO schemas, request validation, URL validation, and public response security.
+* 📄 [Attack Engine Specification](./docs/attack-engine.md) — AttackEngine design, probe execution lifecycle, ExecutionStatus, retry safety, and dataflow contract.
+* 📄 [Evaluation Domain Specification](./docs/evaluation-model.md) — EvaluationResult model, EvaluationVerdict taxonomy, evidence structure, confidence validation, and evaluator abstraction.
+* 📄 [Deterministic Evaluator Engine Spec](./docs/deterministic-evaluator.md) — DeterministicEvaluator design, rule taxonomy, verdict criteria, evidence extraction, and detection rules.
+* 📄 [Finding Domain Specification](./docs/finding-model.md) — Finding model, severity taxonomy, status taxonomy, evidence structure, and remediation metadata.
+* 📄 [Finding Engine Specification](./docs/finding-engine.md) — FindingEngine design, evaluation result conversion, finding aggregation, and deterministic ID derivation.
+* 📄 [Risk Domain Specification](./docs/risk-model.md) — Risk assessment domain models, factor enums, risk level taxonomy, and weighted scoring model.
+* 📄 [Risk Engine Specification](./docs/risk-engine.md) — RiskEngine design, mathematical scoring algorithm, and risk level derivation rules.
+* 📄 [Scan Model Specification](./docs/scan-model.md) — ScanResult container, ScanSummary counters, ScanStatus taxonomy, and lineage validation rules.
+* 📄 [Scan Engine Specification](./docs/scan-engine.md) — ScanEngine orchestrator, execution pipeline dataflow, error status semantics, and dependency injection.
+* 📄 [Security Probe Domain Specification](./docs/probe-model.md) — SecurityProbe model, category taxonomy, pipeline separation, stable IDs, and initial probe suite.
+* 📄 [Local Security Test Target Spec](./docs/test-agent.md) — Purpose, synthetic tools, controlled vulnerability triggers, and local testing boundaries for the test agent fixture.
+* 📄 [Customer Support Agent Threat Model](./docs/threat-model.md) — Threat taxonomy, attack surface analysis, and vulnerability breakdown.
+* 📄 [MVP Scope & Boundary](./docs/mvp-scope.md) — Detailed Week 1 feature set, test suite specification, version-controlled rules rationale, and technology baseline.
+
+
+
+
+
+
+---
+
+## 9. Open Architectural Questions
+
+> [!IMPORTANT]
+> **Open Decision 1: Target Adapter Response Parsing Fallback**
+> When targeting a generic HTTP agent whose response schema is undeclared, should `GenericHTTPAdapter` attempt automatic JSON key extraction (e.g., checking `"response"`, `"output"`, `"message"`, `"text"`) or strictly require explicit JSONPath mapping configuration?
+
+> [!IMPORTANT]
+> **Open Decision 2: LLM Judge Provider Selection**
+> Should the default LLM Judge rely on cloud LLM APIs (e.g., Groq / Claude 3.5) for high accuracy, or support local small models (e.g., Ollama / Llama 3 8B) for zero-data-leakage enterprise environments?
+

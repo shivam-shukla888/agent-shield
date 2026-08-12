@@ -1,0 +1,153 @@
+"""
+Scan Repository Abstraction and In-Memory Implementation (STEP 11A)
+
+This module defines:
+1. ScanRepository: Abstract interface for scan history persistence.
+2. InMemoryScanRepository: Deterministic in-memory repository implementation.
+
+ARCHITECTURAL DIRECTIVES:
+1. ScanRepository handles persistence of public ScanResponse DTOs.
+2. Preserves all security boundaries (no credentials or raw execution traces).
+3. Enforces deterministic ordering in scan listing (newest scans first, tie-broken by scan_id).
+"""
+
+from abc import ABC, abstractmethod
+import threading
+from typing import Dict, List, Optional
+
+from app.api.schemas import ScanResponse
+
+
+class RepositoryError(Exception):
+    """Domain exception raised when a database or storage operational error occurs."""
+    pass
+
+
+class ScanRepository(ABC):
+    """
+    Abstract interface for security scan history persistence.
+    """
+
+    @abstractmethod
+    def save(self, scan: ScanResponse) -> ScanResponse:
+        """
+        Persist a ScanResponse object.
+
+        Args:
+            scan (ScanResponse): The scan response DTO to store.
+
+        Returns:
+            ScanResponse: The stored scan response.
+        """
+        pass
+
+    @abstractmethod
+    def get_by_id(self, scan_id: str) -> Optional[ScanResponse]:
+        """
+        Retrieve a stored scan by its unique scan_id.
+
+        Args:
+            scan_id (str): The unique scan identifier.
+
+        Returns:
+            Optional[ScanResponse]: The scan response if found, else None.
+        """
+        pass
+
+    @abstractmethod
+    def list_all(self) -> List[ScanResponse]:
+        """
+        Retrieve all stored scans ordered deterministically.
+
+        Returns:
+            List[ScanResponse]: Collection of all stored scans.
+        """
+        pass
+
+
+class InMemoryScanRepository(ScanRepository):
+    """
+    Thread-safe in-memory implementation of ScanRepository.
+    """
+
+    def __init__(self) -> None:
+        self._scans: Dict[str, ScanResponse] = {}
+        self._lock = threading.Lock()
+
+    def save(self, scan: ScanResponse) -> ScanResponse:
+        """
+        Persist a ScanResponse object in memory.
+
+        Args:
+            scan (ScanResponse): The scan response DTO to store.
+
+        Returns:
+            ScanResponse: The stored scan response.
+
+        Raises:
+            ValueError: If scan is invalid or scan_id is empty.
+        """
+        if not isinstance(scan, ScanResponse):
+            raise ValueError("scan must be a valid ScanResponse instance")
+
+        clean_id = scan.scan_id.strip() if scan.scan_id else ""
+        if not clean_id:
+            raise ValueError("scan_id must not be empty or whitespace-only")
+
+        with self._lock:
+            self._scans[clean_id] = scan
+
+        return scan
+
+    def get_by_id(self, scan_id: str) -> Optional[ScanResponse]:
+        """
+        Retrieve a stored scan by scan_id.
+
+        Args:
+            scan_id (str): The unique scan identifier.
+
+        Returns:
+            Optional[ScanResponse]: Stored scan response if present, else None.
+        """
+        if not scan_id:
+            return None
+
+        clean_id = scan_id.strip()
+        if not clean_id:
+            return None
+
+        with self._lock:
+            return self._scans.get(clean_id)
+
+    def list_all(self) -> List[ScanResponse]:
+        """
+        Retrieve all stored scans in deterministic order.
+        Scans are ordered by started_at descending (newest first),
+        with scan_id descending as a deterministic tie-breaker.
+
+        Returns:
+            List[ScanResponse]: Collection of all stored scans.
+        """
+        with self._lock:
+            scans = list(self._scans.values())
+
+        # Deterministic sorting: started_at descending, scan_id descending
+        scans.sort(key=lambda s: (s.started_at, s.scan_id), reverse=True)
+        return scans
+
+    def clear(self) -> None:
+        """
+        Clear all stored scans from memory (testing utility).
+        """
+        with self._lock:
+            self._scans.clear()
+
+    def count(self) -> int:
+        """
+        Return total number of stored scans.
+        """
+        with self._lock:
+            return len(self._scans)
+
+    def __len__(self) -> int:
+        return self.count()
