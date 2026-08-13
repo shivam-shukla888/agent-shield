@@ -9,6 +9,8 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 
+from app import __version__
+
 from app.adapters.http import GenericHTTPAdapter
 from app.api.routes import router as api_router, set_scan_service
 from app.api.service import ScanService
@@ -32,6 +34,7 @@ from app.security.rate_limit import InMemoryRateLimiter, set_rate_limiter
 
 class HealthResponse(BaseModel):
     status: str
+    version: str = __version__
 
 
 def create_app(
@@ -57,7 +60,7 @@ def create_app(
     application = FastAPI(
         title="AgentShield API",
         description="AgentShield AI Agent Security Testing & Risk Analysis Platform API",
-        version="0.1.0",
+        version=__version__,
     )
 
     # Register Request ID Correlation Middleware & Security Headers Middleware
@@ -109,7 +112,7 @@ def create_app(
     @application.get("/health", response_model=HealthResponse)
     def health_check() -> HealthResponse:
         """Health check (liveness) endpoint to verify application availability."""
-        return HealthResponse(status="ok")
+        return HealthResponse(status="ok", version=__version__)
 
     @application.get("/health/ready")
     def readiness_check() -> JSONResponse:
@@ -120,7 +123,7 @@ def create_app(
         """
         if repository is not None:
             try:
-                repository.list(limit=1)
+                repository.list_all()
             except Exception:
                 return JSONResponse(
                     status_code=503,

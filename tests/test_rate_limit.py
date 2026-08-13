@@ -174,4 +174,4 @@ def test_api_rate_limit_health_endpoint_remains_unlimited():
     # /health should still return 200 OK
     res_health = client.get("/health")
     assert res_health.status_code == 200
-    assert res_health.json() == {"status": "ok"}
+    assert res_health.json()["status"] == "ok"

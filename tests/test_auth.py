@@ -163,7 +163,7 @@ def test_api_auth_health_endpoint_remains_public():
     # GET /health should succeed without any headers
     res = client.get("/health")
     assert res.status_code == 200
-    assert res.json() == {"status": "ok"}
+    assert res.json()["status"] == "ok"
 
 
 def test_api_auth_secret_key_not_leaked_in_401_body():

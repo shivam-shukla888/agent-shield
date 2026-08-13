@@ -11,15 +11,32 @@ __pycache__/
 htmlcov/
 *.egg-info/
 
-# Environment files
+# Environment files (NEVER commit real secrets)
 .env
-.env.*
+.env.local
+.env.production
+.env.staging
+!.env.example
 
 # Build artifacts
 dist/
 build/
 
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
 # IDE / System
 .vscode/
 .idea/
 .DS_Store
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Docker
+docker-compose.override.yml
