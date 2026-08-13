@@ -14,8 +14,9 @@ ARCHITECTURAL DIRECTIVES:
 """
 
 from datetime import datetime, timezone
+import re
 import uuid
-from typing import List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 from fastapi import BackgroundTasks
 
@@ -33,9 +34,15 @@ from app.domain.probe import SecurityProbe
 from app.domain.scan import ScanStatus
 from app.domain.target import TargetConfig
 from app.domain.risk import RiskFactors
+from app.engine.report import ReportEngine
 from app.engine.scan import ScanEngine
 from app.probes.basic import get_basic_probes
 from app.repositories.scan import InMemoryScanRepository, ScanRepository
+
+
+from app.observability import emit_event, get_logger
+
+logger = get_logger("agentshield.service")
 
 
 def resolve_probes(probe_ids: Sequence[str]) -> List[SecurityProbe]:
@@ -73,6 +80,7 @@ class ScanService:
         self,
         scan_engine: ScanEngine,
         repository: Optional[ScanRepository] = None,
+        report_engine: Optional[ReportEngine] = None,
     ) -> None:
         """
         Initialize ScanService with injected ScanEngine and optional ScanRepository instances.
@@ -81,6 +89,8 @@ class ScanService:
             scan_engine (ScanEngine): Instantiated scan orchestrator engine.
             repository (Optional[ScanRepository]): Storage repository abstraction for scan history.
                 Defaults to an InMemoryScanRepository instance if omitted.
+            report_engine (Optional[ReportEngine]): Report generation engine instance.
+                Defaults to a new ReportEngine instance if omitted.
         """
         if not isinstance(scan_engine, ScanEngine):
             raise ValueError("scan_engine must be a valid ScanEngine instance")
@@ -92,6 +102,7 @@ class ScanService:
 
         self.scan_engine = scan_engine
         self.repository = repository
+        self.report_engine = report_engine or ReportEngine()
 
     def submit_scan(
         self,
@@ -152,6 +163,15 @@ class ScanService:
 
         # 5. Persist initial CREATED response in repository
         self.repository.save(initial_response)
+
+        emit_event(
+            logger,
+            "scan.created",
+            scan_id=scan_id,
+            target_name=target_config.name,
+            total_probes=len(probes),
+            status="created",
+        )
 
         # 6. Schedule background execution
         if background_tasks is not None:
@@ -217,7 +237,15 @@ class ScanService:
             # Convert internal ScanResult -> public ScanResponse DTO
             final_response = scan_result_to_response(scan_result)
             self.repository.save(final_response)
-        except Exception:
+        except Exception as exc:
+            emit_event(
+                logger,
+                "scan.failed",
+                level=30,
+                scan_id=scan_id,
+                target_name=target_config.name,
+                error_type=type(exc).__name__,
+            )
             # Operational failure: update status to FAILED
             failed_response = ScanResponse(
                 scan_id=scan_id,
@@ -275,4 +303,45 @@ class ScanService:
             List[ScanResponse]: Collection of stored scan response DTOs.
         """
         return self.repository.list_all()
+
+    def generate_report(
+        self,
+        scan_id: str,
+        report_format: str = "markdown",
+    ) -> Optional[Tuple[Union[str, bytes, Dict[str, Any]], str, str]]:
+        """
+        Generate a sanitized SecurityReport for a stored scan ID in the specified format.
+
+        Args:
+            scan_id (str): Unique scan identifier.
+            report_format (str): Output format ('markdown', 'json', 'html', or 'pdf').
+
+        Returns:
+            Optional[Tuple[Union[str, bytes, Dict[str, Any]], str, str]]: (content, media_type, filename) tuple or None if scan_id not found.
+        """
+        clean_fmt = (report_format or "markdown").strip().lower()
+        if clean_fmt not in ("markdown", "json", "html", "pdf"):
+            raise ValueError("Invalid report format. Supported formats: 'markdown', 'json', 'html', 'pdf'")
+
+        scan_response = self.get_scan(scan_id)
+        if scan_response is None:
+            return None
+
+        report = self.report_engine.create_report(scan_response)
+
+        # Sanitize scan_id for Content-Disposition header filename against path traversal & CRLF injection
+        safe_scan_id = re.sub(r"[^A-Za-z0-9_\-]", "_", scan_id).strip("_")[:64] or "scan"
+
+        if clean_fmt == "markdown":
+            markdown_text = self.report_engine.render_markdown(report)
+            return markdown_text, "text/markdown", f"agentguard-report-{safe_scan_id}.md"
+        elif clean_fmt == "json":
+            report_dict = self.report_engine.to_dict(report)
+            return report_dict, "application/json", f"agentguard-report-{safe_scan_id}.json"
+        elif clean_fmt == "html":
+            html_text = self.report_engine.render_html(report)
+            return html_text, "text/html", f"agentguard-report-{safe_scan_id}.html"
+        else:
+            pdf_bytes = self.report_engine.render_pdf(report)
+            return pdf_bytes, "application/pdf", f"agentguard-report-{safe_scan_id}.pdf"
 

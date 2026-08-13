@@ -1,0 +1,72 @@
+# ============================================================
+# AgentGuard — Docker Compose Production Stack
+# ============================================================
+# Usage:
+#   cp .env.example .env   # fill in real values
+#   docker compose up -d
+#   docker compose logs -f agentguard
+# ============================================================
+
+services:
+  # ---------- AgentGuard Application ----------
+  agentguard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: agentguard-app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      - APP_HOST=${APP_HOST:-0.0.0.0}
+      - APP_PORT=8000
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - AGENTSHIELD_API_KEY=${AGENTSHIELD_API_KEY:-}
+      - AGENTSHIELD_RATE_LIMIT_RPM=${AGENTSHIELD_RATE_LIMIT_RPM:-60}
+      - DATABASE_URL=postgresql://agentguard:${POSTGRES_PASSWORD:-agentguard}@postgres:5432/agentguard
+      - AGENTSHIELD_LLM_PROVIDER=${AGENTSHIELD_LLM_PROVIDER:-fake}
+      - AGENTSHIELD_LLM_API_KEY=${AGENTSHIELD_LLM_API_KEY:-}
+      - AGENTSHIELD_LLM_MODEL=${AGENTSHIELD_LLM_MODEL:-}
+      - AGENTSHIELD_LLM_TIMEOUT=${AGENTSHIELD_LLM_TIMEOUT:-30.0}
+      - AGENTSHIELD_LLM_ENDPOINT=${AGENTSHIELD_LLM_ENDPOINT:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - agentguard-net
+
+  # ---------- PostgreSQL Database ----------
+  postgres:
+    image: postgres:16-alpine
+    container_name: agentguard-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agentguard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentguard}
+      POSTGRES_DB: agentguard
+    volumes:
+      - agentguard-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agentguard -d agentguard"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - agentguard-net
+
+# ---------- Persistent Volumes ----------
+volumes:
+  agentguard-pgdata:
+    driver: local
+
+# ---------- Isolated Network ----------
+networks:
+  agentguard-net:
+    driver: bridge

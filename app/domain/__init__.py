@@ -36,6 +36,13 @@ from app.domain.target import (
     TargetResult,
 )
 
+from app.domain.report import (
+    ReportFinding,
+    ReportFormat,
+    ReportRisk,
+    SecurityReport,
+)
+
 __all__ = [
     "TargetConfig",
     "TargetAuthConfig",
@@ -67,4 +74,8 @@ __all__ = [
     "ScanStatus",
     "ScanSummary",
     "ScanResult",
+    "ReportFormat",
+    "ReportFinding",
+    "ReportRisk",
+    "SecurityReport",
 ]

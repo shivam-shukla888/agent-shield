@@ -26,6 +26,10 @@ from app.engine.attack import AttackEngine
 from app.engine.finding import FindingEngine
 from app.engine.risk import RiskEngine
 from app.evaluation.base import Evaluator
+import time
+from app.observability import emit_event, get_logger
+
+logger = get_logger("agentshield.engine.scan")
 
 
 class ScanEngine:
@@ -107,14 +111,23 @@ class ScanEngine:
             raise ValueError("target_name must be a non-empty string")
         if not isinstance(risk_factors, RiskFactors):
             raise ValueError("risk_factors must be a valid RiskFactors instance")
-
         clean_scan_id = scan_id.strip()
         clean_target_name = target_name.strip()
         started_at = datetime.now(timezone.utc)
+        scan_start_perf = time.perf_counter()
+
+        emit_event(
+            logger,
+            "scan.started",
+            scan_id=clean_scan_id,
+            target_name=clean_target_name,
+            total_probes=len(probes),
+        )
 
         # 2. Empty Probe Sequence Handling
         if not probes:
             completed_at = datetime.now(timezone.utc)
+            scan_dur = round((time.perf_counter() - scan_start_perf) * 1000, 2)
             summary = ScanSummary(
                 total_probes=0,
                 completed_executions=0,
@@ -129,6 +142,19 @@ class ScanEngine:
                 medium_risks=0,
                 high_risks=0,
                 critical_risks=0,
+            )
+            emit_event(
+                logger,
+                "scan.completed",
+                scan_id=clean_scan_id,
+                target_name=clean_target_name,
+                status=str(ScanStatus.COMPLETED),
+                duration_ms=scan_dur,
+                total_probes=0,
+                completed_executions=0,
+                failed_executions=0,
+                total_findings=0,
+                total_risks=0,
             )
             return ScanResult(
                 scan_id=clean_scan_id,
@@ -145,23 +171,80 @@ class ScanEngine:
             )
 
         # 3. Execute Probes via AttackEngine (Sequential execution)
-        executions: List[ProbeExecution] = self.attack_engine.execute_probes(probes)
+        executions: List[ProbeExecution] = []
+        for probe in probes:
+            p_perf = time.perf_counter()
+            emit_event(logger, "probe.started", scan_id=clean_scan_id, probe_id=probe.id)
+            exec_list = self.attack_engine.execute_probes([probe])
+            exec_res = exec_list[0]
+            executions.append(exec_res)
+            p_dur = round((time.perf_counter() - p_perf) * 1000, 2)
+            
+            p_event = "probe.failed" if exec_res.status == ExecutionStatus.ERROR else "probe.completed"
+            p_level = 30 if exec_res.status == ExecutionStatus.ERROR else 20
+            emit_event(
+                logger,
+                p_event,
+                level=p_level,
+                scan_id=clean_scan_id,
+                probe_id=probe.id,
+                execution_id=exec_res.execution_id,
+                duration_ms=p_dur,
+                status=str(exec_res.status),
+            )
 
         # 4. Evaluate Every Execution via Evaluator
         evaluations: List[EvaluationResult] = []
         for probe, execution in zip(probes, executions):
+            e_perf = time.perf_counter()
             eval_result = self.evaluator.evaluate(probe, execution)
             evaluations.append(eval_result)
+            e_dur = round((time.perf_counter() - e_perf) * 1000, 2)
+
+            e_event = "evaluation.error" if eval_result.verdict == EvaluationVerdict.ERROR else "evaluation.completed"
+            e_level = 30 if eval_result.verdict == EvaluationVerdict.ERROR else 20
+            emit_event(
+                logger,
+                e_event,
+                level=e_level,
+                scan_id=clean_scan_id,
+                probe_id=probe.id,
+                execution_id=execution.execution_id,
+                evaluator_type=str(eval_result.evaluator_type),
+                verdict=str(eval_result.verdict),
+                confidence=eval_result.confidence,
+                duration_ms=e_dur,
+            )
 
         # 5. Convert & Aggregate Findings via FindingEngine
         findings_tuple = self.finding_engine.aggregate_evaluation_results(evaluations)
         findings: List[Finding] = list(findings_tuple)
+        for finding in findings:
+            emit_event(
+                logger,
+                "finding.created",
+                scan_id=clean_scan_id,
+                finding_id=finding.finding_id,
+                category=str(finding.category),
+                severity=str(finding.severity),
+                confidence=finding.confidence,
+            )
 
         # 6. Create Risk Assessments via RiskEngine
         risk_assessments: List[RiskAssessment] = []
         for finding in findings:
             risk_assessment = self.risk_engine.assess_risk(finding, risk_factors)
             risk_assessments.append(risk_assessment)
+            emit_event(
+                logger,
+                "risk.assessed",
+                scan_id=clean_scan_id,
+                risk_id=risk_assessment.risk_id,
+                finding_id=risk_assessment.finding_id,
+                risk_level=str(risk_assessment.risk_level),
+                risk_score=risk_assessment.risk_score,
+                confidence=risk_assessment.confidence,
+            )
 
         # 7. Operational Failure vs. Security Verdict Status Determination
         has_exec_error = any(e.status == ExecutionStatus.ERROR for e in executions)
@@ -170,10 +253,16 @@ class ScanEngine:
 
         if all_failed:
             status = ScanStatus.FAILED
+            scan_event = "scan.failed"
+            scan_level = 40
         elif has_exec_error or has_eval_error:
             status = ScanStatus.PARTIAL
+            scan_event = "scan.partial"
+            scan_level = 30
         else:
             status = ScanStatus.COMPLETED
+            scan_event = "scan.completed"
+            scan_level = 20
 
         # 8. Build Summary Statistics
         summary = ScanSummary(
@@ -193,6 +282,22 @@ class ScanEngine:
         )
 
         completed_at = datetime.now(timezone.utc)
+        scan_dur = round((time.perf_counter() - scan_start_perf) * 1000, 2)
+
+        emit_event(
+            logger,
+            scan_event,
+            level=scan_level,
+            scan_id=clean_scan_id,
+            target_name=clean_target_name,
+            status=str(status),
+            duration_ms=scan_dur,
+            total_probes=len(probes),
+            completed_executions=summary.completed_executions,
+            failed_executions=summary.failed_executions,
+            total_findings=summary.total_findings,
+            total_risks=len(risk_assessments),
+        )
 
         # 9. Return Unified ScanResult
         return ScanResult(

@@ -13,6 +13,7 @@ ARCHITECTURAL DIRECTIVES:
 """
 
 from datetime import datetime
+import re
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
@@ -39,6 +40,9 @@ from app.domain.target import TargetConfig
 # ============================================================================
 
 
+SAFE_SCAN_ID_PATTERN = re.compile(r"^[A-Za-z0-9_\-]{1,128}$")
+
+
 class TargetScanRequest(BaseModel):
     """
     Public DTO representing a target agent scan request configuration.
@@ -46,7 +50,7 @@ class TargetScanRequest(BaseModel):
 
     model_config = ConfigDict(frozen=True)
 
-    target_name: str = Field(..., description="Non-empty descriptive name of the target agent")
+    target_name: str = Field(..., max_length=1000, description="Non-empty descriptive name of the target agent")
     endpoint: str = Field(..., description="Non-empty target HTTP/HTTPS endpoint URL")
     method: str = Field(default="POST", description="HTTP method (e.g. POST, GET)")
     headers: Dict[str, str] = Field(default_factory=dict, description="Optional request HTTP headers")
@@ -66,6 +70,8 @@ class TargetScanRequest(BaseModel):
         stripped = v.strip()
         if not stripped:
             raise ValueError("target_name must be a non-empty string")
+        if any(char in stripped for char in ("\r", "\n", "\t", "\0")):
+            raise ValueError("target_name contains illegal control characters or whitespace")
         return stripped
 
     @field_validator("endpoint")
@@ -75,11 +81,25 @@ class TargetScanRequest(BaseModel):
         if not stripped:
             raise ValueError("endpoint must be a non-empty string")
 
+        if any(char in stripped for char in ("\r", "\n", "\t", "\0")):
+            raise ValueError("endpoint contains illegal control characters or whitespace")
+
         parsed = urlparse(stripped)
         if parsed.scheme not in ("http", "https"):
             raise ValueError("endpoint must use http or https URL scheme")
         if not parsed.netloc:
             raise ValueError("endpoint must contain a valid hostname")
+
+        if parsed.username or parsed.password:
+            raise ValueError("endpoint containing embedded user credentials is not permitted")
+
+        try:
+            port = parsed.port
+            if port is not None and (port <= 0 or port > 65535):
+                raise ValueError(f"endpoint contains invalid TCP port: {port}")
+        except ValueError as exc:
+            if "port" in str(exc).lower():
+                raise ValueError("endpoint contains invalid TCP port")
 
         return stripped
 
@@ -115,6 +135,9 @@ class ProbeSelectionRequest(BaseModel):
     def validate_probe_ids(cls, v: List[str]) -> List[str]:
         if not v:
             raise ValueError("probe_ids list must not be empty")
+
+        if len(v) > 50:
+            raise ValueError("probe_ids selection must not exceed 50 probes")
 
         cleaned_ids: List[str] = []
         seen = set()
@@ -164,6 +187,8 @@ class ScanRequest(BaseModel):
         stripped = v.strip()
         if not stripped:
             raise ValueError("scan_id must not be empty or whitespace-only when provided")
+        if not SAFE_SCAN_ID_PATTERN.match(stripped):
+            raise ValueError("scan_id must contain only alphanumeric characters, hyphens, and underscores (max 128 chars)")
         return stripped
 
 

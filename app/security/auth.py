@@ -113,6 +113,11 @@ def extract_api_key(request: Request) -> Optional[str]:
     return None
 
 
+from app.observability import emit_event, get_logger
+
+logger = get_logger("agentshield.security.auth")
+
+
 def require_api_key(request: Request) -> None:
     """
     FastAPI route dependency enforcing API key authentication.
@@ -126,7 +131,9 @@ def require_api_key(request: Request) -> None:
 
     provided_key = extract_api_key(request)
     if not authenticator.verify_key(provided_key):
+        emit_event(logger, "auth.failure", level=30, status="failure")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API key.",
         )
+    emit_event(logger, "auth.success", status="success")

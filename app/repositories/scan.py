@@ -16,6 +16,9 @@ import threading
 from typing import Dict, List, Optional
 
 from app.api.schemas import ScanResponse
+from app.observability import emit_event, get_logger
+
+logger = get_logger("agentshield.repository.in_memory")
 
 
 class RepositoryError(Exception):
@@ -97,6 +100,7 @@ class InMemoryScanRepository(ScanRepository):
         with self._lock:
             self._scans[clean_id] = scan
 
+        emit_event(logger, "repository.save", repository_type="in_memory", operation="save", scan_id=clean_id)
         return scan
 
     def get_by_id(self, scan_id: str) -> Optional[ScanResponse]:
@@ -117,7 +121,10 @@ class InMemoryScanRepository(ScanRepository):
             return None
 
         with self._lock:
-            return self._scans.get(clean_id)
+            res = self._scans.get(clean_id)
+
+        emit_event(logger, "repository.get", repository_type="in_memory", operation="get_by_id", scan_id=clean_id, found=res is not None)
+        return res
 
     def list_all(self) -> List[ScanResponse]:
         """
@@ -133,6 +140,7 @@ class InMemoryScanRepository(ScanRepository):
 
         # Deterministic sorting: started_at descending, scan_id descending
         scans.sort(key=lambda s: (s.started_at, s.scan_id), reverse=True)
+        emit_event(logger, "repository.list", repository_type="in_memory", operation="list_all", total_scans=len(scans))
         return scans
 
     def clear(self) -> None:

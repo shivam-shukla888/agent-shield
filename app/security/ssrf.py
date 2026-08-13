@@ -68,10 +68,23 @@ class SSRFPolicy:
         if clean_ip in cls.CLOUD_METADATA_IPS:
             return True, "Cloud metadata IP address is blocked"
 
+        # Attempt parsing decimal/hex/octal integer IP representations (e.g., 2130706433, 0x7f000001, 0177.0.0.1)
+        try:
+            if clean_ip.isdigit() or (clean_ip.startswith("0x") or clean_ip.startswith("0X")):
+                ip_int = int(clean_ip, 0)
+                if 0 <= ip_int <= 4294967295:
+                    clean_ip = str(ipaddress.IPv4Address(ip_int))
+        except Exception:
+            pass
+
         try:
             ip_obj = ipaddress.ip_address(clean_ip)
         except ValueError:
             return True, f"Invalid IP address format: '{clean_ip}'"
+
+        # Unwrap IPv4-mapped IPv6 addresses (e.g. ::ffff:127.0.0.1)
+        if isinstance(ip_obj, ipaddress.IPv6Address) and ip_obj.ipv4_mapped:
+            ip_obj = ip_obj.ipv4_mapped
 
         if ip_obj.is_loopback:
             return True, "Loopback IP address is blocked"
@@ -85,6 +98,16 @@ class SSRFPolicy:
             return True, "Reserved / special-use IP address is blocked"
         if ip_obj.is_private:
             return True, "Private RFC1918 / unique-local IP address is blocked"
+
+        # Explicit check for Carrier-Grade NAT (CGNAT) 100.64.0.0/10 if not caught
+        if isinstance(ip_obj, ipaddress.IPv4Address):
+            if ip_obj in ipaddress.ip_network("100.64.0.0/10"):
+                return True, "Carrier-Grade NAT (CGNAT) IP address is blocked"
+            if ip_obj in ipaddress.ip_network("0.0.0.0/8"):
+                return True, "Unspecified 0.0.0.0/8 IPv4 range is blocked"
+            for test_net in ("192.0.2.0/24", "198.51.100.0/24", "203.0.113.0/24"):
+                if ip_obj in ipaddress.ip_network(test_net):
+                    return True, f"TEST-NET IP range '{test_net}' is blocked"
 
         return False, ""
 
@@ -112,6 +135,10 @@ class SSRFValidator:
 
         clean_url = url.strip()
 
+        # Reject control characters or whitespace injection
+        if any(char in clean_url for char in ("\r", "\n", "\t", "\0")):
+            return False, "Target URL contains illegal control characters or whitespace"
+
         try:
             parsed = urlparse(clean_url)
         except Exception:
@@ -122,7 +149,11 @@ class SSRFValidator:
         if scheme not in SSRFPolicy.ALLOWED_SCHEMES:
             return False, f"URL scheme '{scheme}' is not permitted (only http/https allowed)"
 
-        # 2. Hostname extraction & Case normalization
+        # 2. Embedded Userinfo / Credentials Rejection
+        if parsed.username or parsed.password:
+            return False, "Target URL containing embedded user credentials is not permitted"
+
+        # 3. Hostname extraction & Case normalization
         hostname = (parsed.hostname or "").strip()
         if not hostname:
             return False, "URL does not contain a valid hostname"
@@ -131,17 +162,45 @@ class SSRFValidator:
         if not hostname_lower:
             return False, "Empty hostname after normalization"
 
-        # 3. Hostname Alias Blocklist Check
+        # 4. Port Validation
+        try:
+            port = parsed.port
+            if port is not None and (port <= 0 or port > 65535):
+                return False, f"Invalid TCP port number: {port}"
+        except ValueError:
+            return False, "Malformed TCP port number"
+
+        # 5. Hostname Alias Blocklist Check
         if hostname_lower in SSRFPolicy.BLOCKED_HOSTNAMES:
             return False, f"Hostname '{hostname_lower}' is blocked by SSRF policy"
 
-        # 4. Determine if hostname is an IP literal or needs DNS resolution
+        # 6. Determine if hostname is an IP literal or needs DNS resolution
+        is_ip_literal = False
+        resolved_ips: List[str] = []
         try:
-            ipaddress.ip_address(hostname_lower)
-            is_ip_literal = True
-            resolved_ips = [hostname_lower]
-        except ValueError:
-            is_ip_literal = False
+            if hostname_lower.isdigit() or hostname_lower.startswith("0x") or hostname_lower.startswith("0X"):
+                ip_int = int(hostname_lower, 0)
+                if 0 <= ip_int <= 4294967295:
+                    resolved_ips = [str(ipaddress.IPv4Address(ip_int))]
+                    is_ip_literal = True
+            elif "." in hostname_lower:
+                parts = hostname_lower.split(".")
+                if len(parts) == 4 and any(p.startswith("0") and len(p) > 1 for p in parts if p.isdigit()):
+                    oct_parts = [str(int(p, 8)) if (p.startswith("0") and len(p) > 1 and p.isdigit()) else p for p in parts]
+                    oct_ip = ".".join(oct_parts)
+                    ip_obj = ipaddress.ip_address(oct_ip)
+                    is_ip_literal = True
+                    resolved_ips = [str(ip_obj)]
+        except Exception:
+            pass
+
+        if not is_ip_literal:
+            try:
+                ip_obj = ipaddress.ip_address(hostname_lower)
+                is_ip_literal = True
+                resolved_ips = [str(ip_obj)]
+            except ValueError:
+                is_ip_literal = False
 
         if not is_ip_literal:
             try:
@@ -152,7 +211,7 @@ class SSRFValidator:
             if not resolved_ips:
                 return False, f"No IP addresses resolved for host '{hostname_lower}'"
 
-        # 5. Evaluate every resolved IP against SSRF policy
+        # 7. Evaluate every resolved IP against SSRF policy
         for ip_str in resolved_ips:
             blocked, reason = SSRFPolicy.is_ip_blocked(ip_str)
             if blocked:

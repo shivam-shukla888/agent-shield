@@ -207,6 +207,8 @@ Detailed architectural blueprints are available in the [`docs/`](./docs) directo
 * 📄 [Attack Engine Specification](./docs/attack-engine.md) — AttackEngine design, probe execution lifecycle, ExecutionStatus, retry safety, and dataflow contract.
 * 📄 [Evaluation Domain Specification](./docs/evaluation-model.md) — EvaluationResult model, EvaluationVerdict taxonomy, evidence structure, confidence validation, and evaluator abstraction.
 * 📄 [Deterministic Evaluator Engine Spec](./docs/deterministic-evaluator.md) — DeterministicEvaluator design, rule taxonomy, verdict criteria, evidence extraction, and detection rules.
+* 📄 [Hybrid Evaluation Strategy Spec](./docs/hybrid-evaluation.md) — HybridEvaluationStrategy policy layer, deterministic vs LLM combination matrix, transport error defense, and evidence merging rules.
+* 📄 [Production LLM Provider Spec](./docs/production-llm-provider.md) — ProductionLLMProvider REST adapter, LLMProviderConfig, provider factory, secret non-disclosure, and credential isolation.
 * 📄 [Finding Domain Specification](./docs/finding-model.md) — Finding model, severity taxonomy, status taxonomy, evidence structure, and remediation metadata.
 * 📄 [Finding Engine Specification](./docs/finding-engine.md) — FindingEngine design, evaluation result conversion, finding aggregation, and deterministic ID derivation.
 * 📄 [Risk Domain Specification](./docs/risk-model.md) — Risk assessment domain models, factor enums, risk level taxonomy, and weighted scoring model.
@@ -215,6 +217,10 @@ Detailed architectural blueprints are available in the [`docs/`](./docs) directo
 * 📄 [Scan Engine Specification](./docs/scan-engine.md) — ScanEngine orchestrator, execution pipeline dataflow, error status semantics, and dependency injection.
 * 📄 [Security Probe Domain Specification](./docs/probe-model.md) — SecurityProbe model, category taxonomy, pipeline separation, stable IDs, and initial probe suite.
 * 📄 [Local Security Test Target Spec](./docs/test-agent.md) — Purpose, synthetic tools, controlled vulnerability triggers, and local testing boundaries for the test agent fixture.
+* 📄 [Production Observability & Structured Logging Spec](./docs/observability.md) — Production-grade structured JSON logging, X-Request-ID correlation middleware, event taxonomy, secret redaction, and monotonic timing.
+* 📄 [Production Security Hardening & Audit Spec](./docs/security-hardening.md) — Production SSRF defense, DNS rebinding mitigation, redirect policies, payload size limits, header sanitization, endpoint validation, and security headers.
+* 📄 [Security Report Domain Specification](./docs/report-model.md) — ReportFinding, ReportRisk, SecurityReport DTO contracts, immutability, and boundary rules.
+* 📄 [Reporting Engine Specification](./docs/report-engine.md) — ReportEngine architecture, template executive summary, deterministic risk sorting, Markdown & JSON rendering.
 * 📄 [Customer Support Agent Threat Model](./docs/threat-model.md) — Threat taxonomy, attack surface analysis, and vulnerability breakdown.
 * 📄 [MVP Scope & Boundary](./docs/mvp-scope.md) — Detailed Week 1 feature set, test suite specification, version-controlled rules rationale, and technology baseline.
 

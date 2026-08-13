@@ -31,6 +31,7 @@ class EvaluatorType(StrEnum):
 
     DETERMINISTIC = "deterministic"
     LLM_JUDGE = "llm_judge"
+    HYBRID = "hybrid"
 
 
 class EvaluationEvidence(BaseModel):

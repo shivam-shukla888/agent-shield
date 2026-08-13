@@ -1,22 +1,24 @@
 """
-FastAPI Routes for AgentShield REST API (STEP 11A)
+FastAPI Routes for AgentShield REST API (STEP 11A & STEP 16A)
 
 This module defines REST API routes under the `/api/v1` version prefix.
 
 ROUTES:
-- POST /api/v1/scans : Execute a synchronous security scan against a target agent.
+- POST /api/v1/scans : Execute a security scan against a target agent.
 - GET /api/v1/scans/{scan_id} : Retrieve a previously executed scan by ID.
 - GET /api/v1/scans : Retrieve scan execution history ordered deterministically.
+- GET /api/v1/scans/{scan_id}/report : Generate sanitized security report (Markdown / JSON).
 
 SECURITY INVARIANTS:
-1. Returns strictly public ScanResponse DTOs.
+1. Returns strictly public ScanResponse DTOs and sanitized SecurityReport content.
 2. Catches internal exceptions and returns safe HTTP 400/404/422/500 error responses.
 3. NEVER leaks stack traces, python exceptions, headers, bearer tokens, or raw responses in error bodies.
 """
 
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response, status
+from fastapi.responses import JSONResponse
 
 from app.api.schemas import ScanRequest, ScanResponse
 from app.api.service import ScanService
@@ -31,14 +33,6 @@ router = APIRouter(prefix="/api/v1", tags=["scans"], dependencies=[Depends(requi
 _scan_service_instance: Optional[ScanService] = None
 
 
-def set_scan_service(service: ScanService) -> None:
-    """
-    Register the global ScanService instance for application routing.
-    """
-    global _scan_service_instance
-    _scan_service_instance = service
-
-
 def get_scan_service() -> ScanService:
     """
     Dependency provider for ScanService.
@@ -51,31 +45,43 @@ def get_scan_service() -> ScanService:
     return _scan_service_instance
 
 
+def set_scan_service(service: ScanService) -> None:
+    """
+    Set the global ScanService instance during application initialization or testing setup.
+    """
+    global _scan_service_instance
+    _scan_service_instance = service
+
+
 @router.post(
     "/scans",
     response_model=ScanResponse,
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Dispatch Security Scan",
-    description="Asynchronously dispatch a suite of security probes against a target AI agent and return HTTP 202 Accepted with a CREATED scan status.",
     dependencies=[Depends(require_rate_limit)],
+    summary="Submit Security Scan Request",
+    description="Submits a security scan against a target AI agent for asynchronous background execution.",
 )
-def create_scan(
+async def create_scan(
     request: ScanRequest,
     background_tasks: BackgroundTasks,
     service: ScanService = Depends(get_scan_service),
 ) -> ScanResponse:
     """
     POST /api/v1/scans endpoint handler.
+    Submits a ScanRequest DTO, initiates background execution, and returns 202 Accepted.
     """
     try:
         return service.submit_scan(request, background_tasks=background_tasks)
-    except ValueError as exc:
-        err_msg = str(exc)
+    except ValueError as val_err:
+        err_msg = str(val_err)
         if "Unknown probe ID" in err_msg:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=err_msg)
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail="Invalid request parameters.")
-    except HTTPException:
-        raise
+    except RepositoryError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Storage operations failed during scan submission",
+        )
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -87,10 +93,10 @@ def create_scan(
     "/scans",
     response_model=List[ScanResponse],
     status_code=status.HTTP_200_OK,
-    summary="List Security Scans",
-    description="Retrieve scan execution history in deterministic order (newest first).",
+    summary="List Scan History",
+    description="Retrieve all previously executed security scan runs ordered deterministically.",
 )
-def list_scans(
+async def list_scans(
     service: ScanService = Depends(get_scan_service),
 ) -> List[ScanResponse]:
     """
@@ -98,8 +104,6 @@ def list_scans(
     """
     try:
         return service.list_scans()
-    except HTTPException:
-        raise
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -111,10 +115,10 @@ def list_scans(
     "/scans/{scan_id}",
     response_model=ScanResponse,
     status_code=status.HTTP_200_OK,
-    summary="Get Security Scan by ID",
-    description="Retrieve a previously executed security scan by its unique scan_id.",
+    summary="Get Scan Details",
+    description="Retrieve execution details and findings for a previously executed security scan by ID.",
 )
-def get_scan(
+async def get_scan(
     scan_id: str,
     service: ScanService = Depends(get_scan_service),
 ) -> ScanResponse:
@@ -138,3 +142,59 @@ def get_scan(
             detail="Scan retrieval failed.",
         )
 
+
+@router.get(
+    "/scans/{scan_id}/report",
+    summary="Generate Security Report for a Scan",
+    description="Generates a sanitized human-readable security report in Markdown, JSON, HTML, or PDF format.",
+)
+async def get_scan_report(
+    scan_id: str,
+    format: Optional[str] = Query(default="markdown", description="Report format: 'markdown', 'json', 'html', or 'pdf'"),
+    service: ScanService = Depends(get_scan_service),
+) -> Response:
+    """
+    GET /api/v1/scans/{scan_id}/report endpoint handler.
+    """
+    clean_fmt = (format or "markdown").strip().lower()
+    if clean_fmt not in ("markdown", "json", "html", "pdf"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid format parameter. Supported formats: 'markdown', 'json', 'html', 'pdf'",
+        )
+
+    try:
+        clean_id = scan_id.strip()
+        result = service.generate_report(clean_id, report_format=clean_fmt)
+        if result is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Scan '{clean_id}' report not found.",
+            )
+
+        content, media_type, filename = result
+
+        # Sanitized filename for Content-Disposition header against header injection
+        safe_filename = filename.replace("\r", "").replace("\n", "").replace('"', "")
+        disposition_header = {"Content-Disposition": f'attachment; filename="{safe_filename}"'}
+
+        if clean_fmt == "json":
+            return JSONResponse(content=content, headers=disposition_header)
+        elif clean_fmt == "pdf":
+            return Response(content=content, media_type="application/pdf", headers=disposition_header)
+        elif clean_fmt == "html":
+            return Response(content=content, media_type="text/html", headers=disposition_header)
+        else:
+            return Response(content=content, media_type="text/markdown", headers=disposition_header)
+    except HTTPException:
+        raise
+    except ValueError as val_err:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(val_err),
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Report generation failed.",
+        )

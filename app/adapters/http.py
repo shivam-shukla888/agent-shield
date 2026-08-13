@@ -28,6 +28,20 @@ from app.domain.target import (
 )
 from app.security.ssrf import SSRFValidator
 
+MAX_RESPONSE_BYTES = 5 * 1024 * 1024  # 5 MB limit
+
+DISALLOWED_TARGET_HEADERS = {
+    "x-api-key",
+    "connection",
+    "keep-alive",
+    "proxy-authenticate",
+    "proxy-authorization",
+    "te",
+    "trailers",
+    "transfer-encoding",
+    "upgrade",
+}
+
 
 class GenericHTTPAdapter(TargetAdapter):
     """
@@ -180,6 +194,32 @@ class GenericHTTPAdapter(TargetAdapter):
         latency_ms = (time.monotonic() - start_time) * 1000.0
         status_code = response.status_code
 
+        # Check response content size limits before parsing
+        content_length_hdr = response.headers.get("content-length")
+        if content_length_hdr and content_length_hdr.isdigit() and int(content_length_hdr) > MAX_RESPONSE_BYTES:
+            return TargetResult(
+                success=False,
+                status_code=status_code,
+                latency_ms=latency_ms,
+                error=TargetError(
+                    code=TargetErrorCode.MALFORMED_RESPONSE,
+                    message="Target response payload exceeded maximum allowed size limit of 5MB",
+                    retryable=False,
+                ),
+            )
+
+        if len(response.content) > MAX_RESPONSE_BYTES:
+            return TargetResult(
+                success=False,
+                status_code=status_code,
+                latency_ms=latency_ms,
+                error=TargetError(
+                    code=TargetErrorCode.MALFORMED_RESPONSE,
+                    message="Target response payload exceeded maximum allowed size limit of 5MB",
+                    retryable=False,
+                ),
+            )
+
         # HTTP Status Code Error Mapping
         if status_code in (401, 403):
             return TargetResult(
@@ -252,8 +292,15 @@ class GenericHTTPAdapter(TargetAdapter):
         """
         Construct HTTP headers applying static and authentication headers.
         Credentials are read safely via SecretStr without logging.
+        Strips dangerous hop-by-hop and AgentGuard internal auth headers, and cleans CRLF characters.
         """
-        headers = dict(self.config.headers)
+        headers: Dict[str, str] = {}
+        for k, v in self.config.headers.items():
+            clean_k = str(k).replace("\r", "").replace("\n", "").strip()
+            clean_v = str(v).replace("\r", "").replace("\n", "").strip()
+            if clean_k and clean_k.lower() not in DISALLOWED_TARGET_HEADERS:
+                headers[clean_k] = clean_v
+
         if "Content-Type" not in headers and "content-type" not in headers:
             headers["Content-Type"] = "application/json"
 
@@ -263,9 +310,14 @@ class GenericHTTPAdapter(TargetAdapter):
                 headers["Authorization"] = f"Bearer {auth.token.get_secret_value()}"
             elif auth.auth_type == AuthType.API_KEY and auth.token:
                 header_name = auth.header_name or "X-API-Key"
-                headers[header_name] = auth.token.get_secret_value()
+                clean_hdr_name = str(header_name).replace("\r", "").replace("\n", "").strip()
+                headers[clean_hdr_name] = auth.token.get_secret_value()
             elif auth.auth_type == AuthType.CUSTOM_HEADERS:
-                headers.update(auth.custom_headers)
+                for ck, cv in auth.custom_headers.items():
+                    clean_ck = str(ck).replace("\r", "").replace("\n", "").strip()
+                    clean_cv = str(cv).replace("\r", "").replace("\n", "").strip()
+                    if clean_ck:
+                        headers[clean_ck] = clean_cv
 
         return headers
 

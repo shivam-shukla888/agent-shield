@@ -5,6 +5,7 @@ AgentShield FastAPI Main Application & Composition Root
 import os
 from typing import Optional
 from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 
@@ -17,6 +18,8 @@ from app.engine.finding import FindingEngine
 from app.engine.risk import RiskEngine
 from app.engine.scan import ScanEngine
 from app.evaluation.deterministic import DeterministicEvaluator
+from app.observability.middleware import RequestIDMiddleware
+from app.observability.security_headers import SecurityHeadersMiddleware
 from app.repositories import (
     InMemoryScanRepository,
     PostgreSQLScanRepository,
@@ -56,6 +59,10 @@ def create_app(
         description="AgentShield AI Agent Security Testing & Risk Analysis Platform API",
         version="0.1.0",
     )
+
+    # Register Request ID Correlation Middleware & Security Headers Middleware
+    application.add_middleware(SecurityHeadersMiddleware)
+    application.add_middleware(RequestIDMiddleware)
 
     # Configure API Key Authenticator
     configured_api_key = api_key if api_key is not None else (os.getenv("AGENTSHIELD_API_KEY") or os.getenv("API_KEY"))
@@ -101,8 +108,25 @@ def create_app(
 
     @application.get("/health", response_model=HealthResponse)
     def health_check() -> HealthResponse:
-        """Health check endpoint to verify system availability."""
+        """Health check (liveness) endpoint to verify application availability."""
         return HealthResponse(status="ok")
+
+    @application.get("/health/ready")
+    def readiness_check() -> JSONResponse:
+        """
+        Readiness check endpoint verifying backing storage connectivity safely.
+        Returns HTTP 200 {"status": "ready"} or HTTP 503 {"status": "unhealthy"}.
+        Does NOT expose database credentials, SQL errors, or internal stack traces.
+        """
+        if repository is not None:
+            try:
+                repository.list(limit=1)
+            except Exception:
+                return JSONResponse(
+                    status_code=503,
+                    content={"status": "unhealthy", "reason": "Storage repository is unreachable"},
+                )
+        return JSONResponse(status_code=200, content={"status": "ready"})
 
     application.include_router(api_router)
     return application

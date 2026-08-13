@@ -116,6 +116,11 @@ def get_rate_limiter() -> InMemoryRateLimiter:
     return _rate_limiter_instance
 
 
+from app.observability import emit_event, get_logger
+
+logger = get_logger("agentshield.security.rate_limit")
+
+
 def require_rate_limit(request: Request) -> None:
     """
     FastAPI route dependency enforcing rate limiting.
@@ -136,6 +141,7 @@ def require_rate_limit(request: Request) -> None:
 
     is_limited, retry_after = limiter.check_and_record(client_id)
     if is_limited:
+        emit_event(logger, "rate_limit.exceeded", level=30, status="rate_limited")
         retry_seconds = math.ceil(retry_after)
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
