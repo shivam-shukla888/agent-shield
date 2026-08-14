@@ -1,5 +1,7 @@
 """
-AgentShield Application Package
+AgentGuard / AgentShield Application Package
 """
 
-__version__ = "0.1.0"
+from app.version import __api_version__, __version__
+
+__all__ = ["__version__", "__api_version__"]

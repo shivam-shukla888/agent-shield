@@ -169,9 +169,13 @@ class PostgreSQLScanRepository(ScanRepository):
         except SQLAlchemyError as exc:
             raise RepositoryError("Failed to retrieve scan record from database") from exc
 
-    def list_all(self) -> List[ScanResponse]:
+    def list_all(self, limit: Optional[int] = None, offset: int = 0) -> List[ScanResponse]:
         """
-        Retrieve all stored scans in deterministic order (started_at DESC, scan_id DESC).
+        Retrieve stored scans in deterministic order (started_at DESC, scan_id DESC) with pagination.
+
+        Args:
+            limit (Optional[int]): Maximum records to return.
+            offset (int): Number of records to skip.
 
         Returns:
             List[ScanResponse]: Collection of reconstructed ScanResponse DTOs.
@@ -182,6 +186,10 @@ class PostgreSQLScanRepository(ScanRepository):
         try:
             with self.session_factory() as session:
                 stmt = select(ScanModel).order_by(ScanModel.started_at.desc(), ScanModel.scan_id.desc())
+                if offset > 0:
+                    stmt = stmt.offset(offset)
+                if limit is not None and limit >= 0:
+                    stmt = stmt.limit(limit)
                 records = session.scalars(stmt).all()
                 return [ScanResponse.model_validate_json(r.payload_json) for r in records]
         except SQLAlchemyError as exc:

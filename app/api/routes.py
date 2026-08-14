@@ -15,9 +15,10 @@ SECURITY INVARIANTS:
 3. NEVER leaks stack traces, python exceptions, headers, bearer tokens, or raw responses in error bodies.
 """
 
+import re
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, Header, HTTPException, Query, Response, status
 from fastapi.responses import JSONResponse
 
 from app.api.schemas import ScanRequest, ScanResponse
@@ -64,13 +65,22 @@ def set_scan_service(service: ScanService) -> None:
 async def create_scan(
     request: ScanRequest,
     background_tasks: BackgroundTasks,
+    idempotency_key: Optional[str] = Header(default=None),
     service: ScanService = Depends(get_scan_service),
 ) -> ScanResponse:
     """
-    POST /api/v1/scans endpoint handler.
-    Submits a ScanRequest DTO, initiates background execution, and returns 202 Accepted.
+    POST /api/v1/scans endpoint handler with Idempotency-Key header support.
     """
     try:
+        if idempotency_key and not request.scan_id:
+            safe_key = re.sub(r"[^A-Za-z0-9_\-]", "_", idempotency_key.strip())[:64]
+            if safe_key:
+                request = ScanRequest(
+                    scan_id=f"IDEM_{safe_key}",
+                    target=request.target,
+                    probes=request.probes,
+                    risk_context=request.risk_context,
+                )
         return service.submit_scan(request, background_tasks=background_tasks)
     except ValueError as val_err:
         err_msg = str(val_err)
@@ -97,13 +107,15 @@ async def create_scan(
     description="Retrieve all previously executed security scan runs ordered deterministically.",
 )
 async def list_scans(
+    limit: Optional[int] = Query(default=None, ge=1, le=100, description="Maximum scans to return (1-100)"),
+    offset: int = Query(default=0, ge=0, description="Number of scans to skip"),
     service: ScanService = Depends(get_scan_service),
 ) -> List[ScanResponse]:
     """
-    GET /api/v1/scans endpoint handler.
+    GET /api/v1/scans endpoint handler with pagination support.
     """
     try:
-        return service.list_scans()
+        return service.list_scans(limit=limit, offset=offset)
     except Exception:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

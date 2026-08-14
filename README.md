@@ -140,9 +140,9 @@ The initial release focuses on establishing a clean **Modular Monolith** archite
 | Phase | Milestone | Status | Key Deliverables |
 | :--- | :--- | :--- | :--- |
 | **Phase 1** | Architecture & Threat Modeling | 🟢 **Complete** | Specifications (`docs/architecture.md`, `docs/threat-model.md`, `docs/mvp-scope.md`) |
-| **Phase 2** | Core Modular Monolith Implementation | 🟡 *Next Up* | Python/FastAPI core engine, Target Adapter interface, 20 test probes |
-| **Phase 3** | Workflow Orchestration & Storage Expansion | ⚪ Planned | PostgreSQL support, n8n external triggers, OpenTelemetry trace normalization |
-| **Phase 4** | Advanced Agent Attack Surfaces | ⚪ Planned | Multi-agent cascade testing, MCP scanning, RAG poisoning, Memory probes |
+| **Phase 2** | Core Modular Monolith Implementation | 🟢 **Complete** | FastAPI core, Target Adapter, probes, evaluation, findings, risk, reporting |
+| **Phase 3** | Production Hardening & Infrastructure | 🟢 **Complete** | Security hardening, observability, Docker, CI/CD, PostgreSQL persistence |
+| **Phase 4** | Platform Integration & Production Release | 🟢 **Complete** | End-to-end integration, performance hardening, SRE runbooks, release readiness (`docs/release.md`, `docs/production-readiness.md`) |
 
 ---
 

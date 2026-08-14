@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine
 
-from app import __version__
+from app.version import __api_version__, __version__
 
 from app.adapters.http import GenericHTTPAdapter
 from app.api.routes import router as api_router, set_scan_service
@@ -35,6 +35,11 @@ from app.security.rate_limit import InMemoryRateLimiter, set_rate_limiter
 class HealthResponse(BaseModel):
     status: str
     version: str = __version__
+
+
+class VersionResponse(BaseModel):
+    version: str = __version__
+    api_version: str = __api_version__
 
 
 def create_app(
@@ -130,6 +135,11 @@ def create_app(
                     content={"status": "unhealthy", "reason": "Storage repository is unreachable"},
                 )
         return JSONResponse(status_code=200, content={"status": "ready"})
+
+    @application.get("/version", response_model=VersionResponse)
+    def version_check() -> VersionResponse:
+        """Version endpoint returning system and API versions safely."""
+        return VersionResponse(version=__version__, api_version=__api_version__)
 
     application.include_router(api_router)
     return application

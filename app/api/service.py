@@ -124,6 +124,12 @@ class ScanService:
         # 1. Resolve scan_id (preserve if provided, generate UUID if omitted)
         scan_id = request.scan_id.strip() if request.scan_id else f"SCAN_{uuid.uuid4().hex[:12].upper()}"
 
+        # Check idempotency: if scan with scan_id already exists, return existing scan response
+        existing_scan = self.repository.get_by_id(scan_id)
+        if existing_scan is not None:
+            emit_event(logger, "scan.idempotent_duplicate", scan_id=scan_id, status=str(existing_scan.status))
+            return existing_scan
+
         # 2. Convert TargetScanRequest -> TargetConfig (synchronous validation)
         target_config = scan_request_to_target_config(request.target)
 
@@ -295,14 +301,18 @@ class ScanService:
             return None
         return self.repository.get_by_id(scan_id.strip())
 
-    def list_scans(self) -> List[ScanResponse]:
+    def list_scans(self, limit: Optional[int] = None, offset: int = 0) -> List[ScanResponse]:
         """
-        Retrieve all previously executed scans in deterministic order.
+        Retrieve previously executed scans in deterministic order with optional pagination.
+
+        Args:
+            limit (Optional[int]): Maximum number of scans to return.
+            offset (int): Number of scans to skip.
 
         Returns:
             List[ScanResponse]: Collection of stored scan response DTOs.
         """
-        return self.repository.list_all()
+        return self.repository.list_all(limit=limit, offset=offset)
 
     def generate_report(
         self,

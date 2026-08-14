@@ -58,12 +58,16 @@ class ScanRepository(ABC):
         pass
 
     @abstractmethod
-    def list_all(self) -> List[ScanResponse]:
+    def list_all(self, limit: Optional[int] = None, offset: int = 0) -> List[ScanResponse]:
         """
-        Retrieve all stored scans ordered deterministically.
+        Retrieve stored scans ordered deterministically, with optional pagination.
+
+        Args:
+            limit (Optional[int]): Maximum number of scans to return.
+            offset (int): Number of scans to skip.
 
         Returns:
-            List[ScanResponse]: Collection of all stored scans.
+            List[ScanResponse]: Collection of stored scans.
         """
         pass
 
@@ -126,22 +130,32 @@ class InMemoryScanRepository(ScanRepository):
         emit_event(logger, "repository.get", repository_type="in_memory", operation="get_by_id", scan_id=clean_id, found=res is not None)
         return res
 
-    def list_all(self) -> List[ScanResponse]:
+    def list_all(self, limit: Optional[int] = None, offset: int = 0) -> List[ScanResponse]:
         """
         Retrieve all stored scans in deterministic order.
         Scans are ordered by started_at descending (newest first),
         with scan_id descending as a deterministic tie-breaker.
+        Supports pagination via offset and limit.
+
+        Args:
+            limit (Optional[int]): Maximum records to return (None for all).
+            offset (int): Number of records to skip.
 
         Returns:
-            List[ScanResponse]: Collection of all stored scans.
+            List[ScanResponse]: Collection of stored scans.
         """
         with self._lock:
             scans = list(self._scans.values())
 
         # Deterministic sorting: started_at descending, scan_id descending
         scans.sort(key=lambda s: (s.started_at, s.scan_id), reverse=True)
-        emit_event(logger, "repository.list", repository_type="in_memory", operation="list_all", total_scans=len(scans))
-        return scans
+
+        start = max(0, offset)
+        end = start + limit if limit is not None and limit >= 0 else len(scans)
+        paginated = scans[start:end]
+
+        emit_event(logger, "repository.list", repository_type="in_memory", operation="list_all", total_scans=len(scans), returned_scans=len(paginated))
+        return paginated
 
     def clear(self) -> None:
         """

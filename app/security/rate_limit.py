@@ -75,7 +75,11 @@ class InMemoryRateLimiter:
 
             # Prune timestamps older than window cutoff
             valid_timestamps = [ts for ts in timestamps if ts > cutoff]
-            self._history[client_id] = valid_timestamps
+
+            if not valid_timestamps:
+                self._history.pop(client_id, None)
+            else:
+                self._history[client_id] = valid_timestamps
 
             if len(valid_timestamps) >= self.requests_per_window:
                 # Rate limit exceeded: calculate retry-after based on oldest active timestamp
@@ -84,8 +88,34 @@ class InMemoryRateLimiter:
                 return True, retry_after
 
             # Quota available: record request
-            valid_timestamps.append(now)
+            if client_id not in self._history:
+                self._history[client_id] = [now]
+            else:
+                valid_timestamps.append(now)
             return False, 0.0
+
+    def cleanup_expired(self, now: Optional[float] = None) -> int:
+        """
+        Purge all client_ids with no active timestamps in current window.
+
+        Args:
+            now (Optional[float]): Current timestamp.
+
+        Returns:
+            int: Number of purged client identifiers.
+        """
+        if now is None:
+            now = time.time()
+        cutoff = now - self.window_seconds
+
+        with self._lock:
+            expired_keys = [
+                cid for cid, ts_list in self._history.items()
+                if not any(ts > cutoff for ts in ts_list)
+            ]
+            for cid in expired_keys:
+                del self._history[cid]
+            return len(expired_keys)
 
     def clear(self) -> None:
         """
