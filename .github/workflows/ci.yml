@@ -43,7 +43,7 @@ jobs:
 
       - name: Run Full Test Suite
         run: |
-          python -m pytest -vv --tb=short -ra
+          python -m pytest tests/ -vv --tb=short -ra
 
       - name: Run Security Tests
         run: |
