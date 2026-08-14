@@ -193,6 +193,34 @@ The initial release focuses on establishing a clean **Modular Monolith** archite
    pytest
    ```
 
+6. **Run Streamlit Security Dashboard**:
+   ```bash
+   streamlit run streamlit_app.py
+   ```
+   The Streamlit client dashboard will launch at `http://localhost:8501`.
+
+---
+
+## 8. Streamlit Community Cloud Deployment
+
+AgentShield includes a production Streamlit client app (`streamlit_app.py`).
+
+### Deployment Steps:
+1. **Fork / Push Repo to GitHub**:
+   Ensure `streamlit_app.py`, `.streamlit/config.toml`, and `requirements.txt` are pushed to your repository.
+2. **Deploy on Streamlit Community Cloud**:
+   * Go to [share.streamlit.io](https://share.streamlit.io/)
+   * Click **New App** -> Select repository `shivam-shukla888/agent-shield`
+   * Set Main file path: `streamlit_app.py`
+3. **Configure Secrets (Optional)**:
+   In Streamlit Cloud App Settings -> **Secrets**, add:
+   ```toml
+   BACKEND_URL = "https://your-agent-shield-backend.onrender.com"
+   API_KEY = "your-secure-api-key"
+   ```
+4. **Offline / Demo Mode**:
+   If the FastAPI server is not reachable, toggle **Demo / Offline Mock Mode** in the Streamlit sidebar to present interactive demo scans without backend dependency.
+
 ---
 
 ## 8. Documentation Index
