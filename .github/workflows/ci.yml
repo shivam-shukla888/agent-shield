@@ -41,6 +41,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
 
+      - name: Diagnostic Import & Collection
+        run: |
+          python -c "
+          import glob, importlib, sys, traceback
+          print('--- CHECKING TEST MODULE IMPORTS ---')
+          for f in sorted(glob.glob('tests/test_*.py')):
+              mod = f.replace('/', '.').replace('\\\\', '.').replace('.py', '')
+              try:
+                  importlib.import_module(mod)
+                  print(f'OK: {mod}')
+              except Exception as e:
+                  print(f'FAIL: {mod} -> {e}')
+                  traceback.print_exc()
+          "
+
       - name: Run Full Test Suite
         run: |
           python -m pytest tests/ -vv --tb=short -ra
