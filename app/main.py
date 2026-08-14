@@ -42,6 +42,16 @@ class VersionResponse(BaseModel):
     api_version: str = __api_version__
 
 
+class RootResponse(BaseModel):
+    name: str = "AgentShield API"
+    description: str = "AI Agent Security Testing & Risk Analysis Platform"
+    version: str = __version__
+    docs_url: str = "/docs"
+    health_url: str = "/health"
+    version_url: str = "/version"
+    scans_url: str = "/api/v1/scans"
+
+
 def create_app(
     service: Optional[ScanService] = None,
     repository: Optional[ScanRepository] = None,
@@ -113,6 +123,11 @@ def create_app(
         service = ScanService(scan_engine=scan_engine, repository=repository)
 
     set_scan_service(service)
+
+    @application.get("/", response_model=RootResponse)
+    def root_endpoint() -> RootResponse:
+        """Root endpoint returning platform overview and API documentation links."""
+        return RootResponse()
 
     @application.get("/health", response_model=HealthResponse)
     def health_check() -> HealthResponse:
