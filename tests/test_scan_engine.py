@@ -3,7 +3,7 @@ Unit tests for ScanEngine orchestrator (STEP 9B).
 """
 
 from datetime import datetime, timezone
-from typing import List, Sequence
+from typing import List, Optional, Sequence
 import pytest
 
 from app.adapters.base import TargetAdapter

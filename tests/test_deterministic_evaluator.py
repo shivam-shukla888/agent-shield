@@ -1,4 +1,5 @@
 import datetime
+from typing import Optional
 import pytest
 
 from app.domain.evaluation import EvaluationVerdict, EvaluatorType

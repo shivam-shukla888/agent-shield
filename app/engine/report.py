@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """
 Reporting Engine (STEP 16A & STEP 16B)
 
