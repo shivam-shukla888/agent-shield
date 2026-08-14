@@ -76,7 +76,7 @@ def test_markdown_download_endpoint():
     assert resp.status_code == 200
     assert "text/markdown" in resp.headers["content-type"]
     assert "Content-Disposition" in resp.headers
-    assert 'attachment; filename="agentguard-report-SCAN_MD_DL.md"' in resp.headers["Content-Disposition"]
+    assert 'attachment; filename="agentshield-report-SCAN_MD_DL.md"' in resp.headers["Content-Disposition"]
 
 
 def test_json_download_endpoint():
@@ -93,7 +93,7 @@ def test_json_download_endpoint():
     assert resp.status_code == 200
     assert "application/json" in resp.headers["content-type"]
     assert "Content-Disposition" in resp.headers
-    assert 'attachment; filename="agentguard-report-SCAN_JS_DL.json"' in resp.headers["Content-Disposition"]
+    assert 'attachment; filename="agentshield-report-SCAN_JS_DL.json"' in resp.headers["Content-Disposition"]
 
 
 def test_html_download_endpoint():
@@ -110,7 +110,7 @@ def test_html_download_endpoint():
     assert resp.status_code == 200
     assert "text/html" in resp.headers["content-type"]
     assert "Content-Disposition" in resp.headers
-    assert 'attachment; filename="agentguard-report-SCAN_HTML_DL.html"' in resp.headers["Content-Disposition"]
+    assert 'attachment; filename="agentshield-report-SCAN_HTML_DL.html"' in resp.headers["Content-Disposition"]
 
 
 def test_pdf_download_endpoint():
@@ -127,7 +127,7 @@ def test_pdf_download_endpoint():
     assert resp.status_code == 200
     assert "application/pdf" in resp.headers["content-type"]
     assert "Content-Disposition" in resp.headers
-    assert 'attachment; filename="agentguard-report-SCAN_PDF_DL.pdf"' in resp.headers["Content-Disposition"]
+    assert 'attachment; filename="agentshield-report-SCAN_PDF_DL.pdf"' in resp.headers["Content-Disposition"]
     assert resp.content.startswith(b"%PDF-")
 
 
@@ -157,4 +157,4 @@ def test_header_injection_and_path_traversal_sanitized():
     assert ".." not in filename
     assert "/" not in filename
     assert "\\" not in filename
-    assert filename == "agentguard-report-SCAN_TEST_123__Set-Cookie_admin_true_____etc_passwd.md"
+    assert filename == "agentshield-report-SCAN_TEST_123__Set-Cookie_admin_true_____etc_passwd.md"

@@ -1,4 +1,4 @@
-# AgentGuard — Operational Troubleshooting Runbook
+# AgentShield — Operational Troubleshooting Runbook
 
 This runbook provides actionable troubleshooting procedures for common operational issues encountered in production deployments.
 
@@ -6,7 +6,7 @@ This runbook provides actionable troubleshooting procedures for common operation
 
 ### Procedure 1: Service Won't Start
 - **Symptom**: Container or process exits immediately upon launch.
-- **Check**: Inspect container startup logs: `docker compose logs agentguard`
+- **Check**: Inspect container startup logs: `docker compose logs agentshield`
 - **Action**: Verify environment variables in `.env`:
   - `AGENTSHIELD_API_KEY` must be set.
   - `APP_PORT` must be an integer between 1 and 65535.
@@ -19,7 +19,7 @@ This runbook provides actionable troubleshooting procedures for common operation
 - **Symptom**: `GET /health/ready` returns HTTP 503 `{"status": "unhealthy", "reason": "Storage repository is unreachable"}`.
 - **Check**: Test database connection from container host:
   ```bash
-  docker exec -it agentguard-postgres pg_isready -U agentguard
+  docker exec -it agentshield-postgres pg_isready -U agentshield
   ```
 - **Action**: Restart database service or update network access credentials in `DATABASE_URL`.
 - **Verify**: `curl http://localhost:8000/health/ready` returns HTTP 200 `{"status": "ready"}`.

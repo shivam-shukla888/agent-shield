@@ -207,7 +207,7 @@ def test_markdown_and_json_rendering():
     md = engine.render_markdown(report)
     js = engine.render_json(report)
 
-    assert "# AgentGuard Security Report" in md
+    assert "# AgentShield Security Report" in md
     assert "Production Agent" in md
     assert '"report_id": "REPORT_SCAN_TEST_001"' in js
 

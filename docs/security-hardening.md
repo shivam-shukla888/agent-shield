@@ -1,6 +1,6 @@
-# AgentGuard Security Hardening & Threat-Model Specification (STEP 17A)
+# AgentShield Security Hardening & Threat-Model Specification (STEP 17A)
 
-This document specifies the production security hardening architecture, threat surface, trust boundaries, mitigations, and residual risk assessment implemented across the AgentGuard platform.
+This document specifies the production security hardening architecture, threat surface, trust boundaries, mitigations, and residual risk assessment implemented across the AgentShield platform.
 
 ---
 

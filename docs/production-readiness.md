@@ -1,4 +1,4 @@
-# AgentGuard — Production Readiness Checklist Audit
+# AgentShield — Production Readiness Checklist Audit
 
 | Category | Requirement / Capability | Status | Implementation Details |
 |---|---|---|---|
@@ -7,7 +7,7 @@
 | **Security** | Outbound Target SSRF Protection | `PASS` | Private IP / loopback / RFC1918 / IPv6 loopback validation in `GenericHTTPAdapter` |
 | **Security** | HTTP Security Headers | `PASS` | `SecurityHeadersMiddleware` (HSTS, X-Content-Type-Options, X-Frame-Options) |
 | **Security** | Secret Protection & Non-Disclosure | `PASS` | Pydantic `SecretStr`, log redaction, sanitized error responses |
-| **Deployment** | Non-Root Docker Image | `PASS` | Unprivileged `agentguard` user (UID 1000) in production Dockerfile |
+| **Deployment** | Non-Root Docker Image | `PASS` | Unprivileged `agentshield` user (UID 1000) in production Dockerfile |
 | **Deployment** | Container Orchestration (Docker Compose) | `PASS` | Production `docker-compose.yml` with health checks & environment separation |
 | **Deployment** | Single Source of Truth Versioning | `PASS` | `app.__version__` exposed on `/health` endpoint |
 | **Database** | PostgreSQL Persistence & Schema Migration | `PASS` | `PostgreSQLScanRepository` with `init_db()` auto-migration |

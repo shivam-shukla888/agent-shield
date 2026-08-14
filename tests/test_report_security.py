@@ -13,7 +13,7 @@ from app.domain.report import (
 from app.engine.report import ReportEngine
 
 
-SECRET_KEY = "sk-proj-SUPER_SECRET_AGENTGUARD_KEY_12345"
+SECRET_KEY = "sk-proj-SUPER_SECRET_AGENTSHIELD_KEY_12345"
 BEARER_TOKEN = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
 DB_URL = "postgresql://admin:super_secret_db_password@localhost:5432/agentshield"
 

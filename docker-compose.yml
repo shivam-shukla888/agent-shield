@@ -1,19 +1,19 @@
 # ============================================================
-# AgentGuard — Docker Compose Production Stack
+# AgentShield — Docker Compose Production Stack
 # ============================================================
 # Usage:
 #   cp .env.example .env   # fill in real values
 #   docker compose up -d
-#   docker compose logs -f agentguard
+#   docker compose logs -f agentshield
 # ============================================================
 
 services:
-  # ---------- AgentGuard Application ----------
-  agentguard:
+  # ---------- AgentShield Application ----------
+  agentshield:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: agentguard-app
+    container_name: agentshield-app
     restart: unless-stopped
     ports:
       - "${APP_PORT:-8000}:8000"
@@ -23,7 +23,7 @@ services:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - AGENTSHIELD_API_KEY=${AGENTSHIELD_API_KEY:-}
       - AGENTSHIELD_RATE_LIMIT_RPM=${AGENTSHIELD_RATE_LIMIT_RPM:-60}
-      - DATABASE_URL=postgresql://agentguard:${POSTGRES_PASSWORD:-agentguard}@postgres:5432/agentguard
+      - DATABASE_URL=postgresql://agentshield:${POSTGRES_PASSWORD:-agentshield}@postgres:5432/agentshield
       - AGENTSHIELD_LLM_PROVIDER=${AGENTSHIELD_LLM_PROVIDER:-fake}
       - AGENTSHIELD_LLM_API_KEY=${AGENTSHIELD_LLM_API_KEY:-}
       - AGENTSHIELD_LLM_MODEL=${AGENTSHIELD_LLM_MODEL:-}
@@ -39,34 +39,34 @@ services:
       retries: 3
       start_period: 15s
     networks:
-      - agentguard-net
+      - agentshield-net
 
   # ---------- PostgreSQL Database ----------
   postgres:
     image: postgres:16-alpine
-    container_name: agentguard-postgres
+    container_name: agentshield-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: agentguard
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentguard}
-      POSTGRES_DB: agentguard
+      POSTGRES_USER: agentshield
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agentshield}
+      POSTGRES_DB: agentshield
     volumes:
-      - agentguard-pgdata:/var/lib/postgresql/data
+      - agentshield-pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U agentguard -d agentguard"]
+      test: ["CMD-SHELL", "pg_isready -U agentshield -d agentshield"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
     networks:
-      - agentguard-net
+      - agentshield-net
 
 # ---------- Persistent Volumes ----------
 volumes:
-  agentguard-pgdata:
+  agentshield-pgdata:
     driver: local
 
 # ---------- Isolated Network ----------
 networks:
-  agentguard-net:
+  agentshield-net:
     driver: bridge

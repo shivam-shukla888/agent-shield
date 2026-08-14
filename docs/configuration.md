@@ -1,11 +1,11 @@
-# AgentGuard — Production Configuration Specification
+# AgentShield — Production Configuration Specification
 
-This document details all supported environment variables for configuring AgentGuard in development, testing, and production environments.
+This document details all supported environment variables for configuring AgentShield in development, testing, and production environments.
 
 | Environment Variable | Required? | Default | Allowed Values | Security Sensitivity | Description |
 |---|---|---|---|---|---|
 | `AGENTSHIELD_API_KEY` | **Yes** | None | Secret string | **High** | Master API key required for HTTP authentication (`X-API-Key`) |
-| `DATABASE_URL` | No | None | PostgreSQL DSN | **High** | PostgreSQL connection string (e.g. `postgresql://user:pass@db:5432/agentguard`) |
+| `DATABASE_URL` | No | None | PostgreSQL DSN | **High** | PostgreSQL connection string (e.g. `postgresql://user:pass@db:5432/agentshield`) |
 | `AGENTSHIELD_RATE_LIMIT_RPM` | No | `60` | Integer `> 0` | Low | Allowed API request quota per sliding window per client key |
 | `AGENTSHIELD_LLM_PROVIDER` | No | `fake` | `fake`, `production` | Low | Selected LLM provider backend mechanism |
 | `AGENTSHIELD_LLM_API_KEY` | Optional | None | Secret string | **High** | API key for production LLM provider |

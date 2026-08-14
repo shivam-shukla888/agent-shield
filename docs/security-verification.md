@@ -1,6 +1,6 @@
-# AgentGuard Security Verification, Abuse Testing & Final Security Gate (STEP 17B)
+# AgentShield Security Verification, Abuse Testing & Final Security Gate (STEP 17B)
 
-This document contains the final security verification matrix, adversarial abuse test results, security audit findings, and final security gate assessment for the AgentGuard AI Agent Security Testing and Risk Analysis Platform.
+This document contains the final security verification matrix, adversarial abuse test results, security audit findings, and final security gate assessment for the AgentShield AI Agent Security Testing and Risk Analysis Platform.
 
 ---
 
@@ -44,7 +44,7 @@ This document contains the final security verification matrix, adversarial abuse
 | **Input** | `endpoint = "http://target\r\nSet-Cookie:bad"` | CRLF injection rejection | `ValueError` ("illegal control characters") | 🟢 **PASS** |
 | **Input** | `probe_ids = [51 probes]` | Bounded list validation | `ValueError` ("must not exceed 50 probes") | 🟢 **PASS** |
 | **Reports** | Target output `<script>alert(1)</script>` | HTML entity escaping | `&lt;script&gt;alert(1)&lt;/script&gt;` | 🟢 **PASS** |
-| **Reports** | Malicious `scan_id` with `\r\n` | Filename header sanitization | Cleaned filename `agentguard-report-...` | 🟢 **PASS** |
+| **Reports** | Malicious `scan_id` with `\r\n` | Filename header sanitization | Cleaned filename `agentshield-report-...` | 🟢 **PASS** |
 | **Reports** | Report endpoint invocation | Read-only execution | Zero scan runs triggered | 🟢 **PASS** |
 | **LLM** | Judge outputs malformed JSON | Defensive parsing fallback | Evaluator returns `INCONCLUSIVE` | 🟢 **PASS** |
 | **LLM** | Judge attempts to inject findings | Structural isolation | Findings created ONLY by FindingEngine | 🟢 **PASS** |
@@ -62,6 +62,6 @@ This document contains the final security verification matrix, adversarial abuse
 
 ## 4. Final Security Gate Assessment
 
-AgentGuard has successfully passed all 14 adversarial security verification domains.
+AgentShield has successfully passed all 14 adversarial security verification domains.
 
 **FINAL GATE VERDICT**: 🟢 **PASS WITH RESIDUAL RISKS**

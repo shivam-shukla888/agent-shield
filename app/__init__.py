@@ -1,5 +1,5 @@
 """
-AgentGuard / AgentShield Application Package
+AgentShield Application Package
 """
 
 from app.version import __api_version__, __version__

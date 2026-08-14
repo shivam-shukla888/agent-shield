@@ -1,4 +1,4 @@
-# AgentGuard v1.0.0 — Production Release Checklist (STEP 22B)
+# AgentShield v1.0.0 — Production Release Checklist (STEP 22B)
 
 ## Code Quality & Engineering Standards
 - [x] All 789 unit, integration, security, and performance tests passing cleanly (100% pass rate).
@@ -28,7 +28,7 @@
 - [x] Full event taxonomy active (`api.request.*`, `scan.*`, `probe.*`, `evaluation.*`, `finding.*`, `risk.*`).
 
 ## Operations & Infrastructure Gate
-- [x] Minimal production Docker container image configured (`python:3.11-slim`, non-root user `agentguard:1000`).
+- [x] Minimal production Docker container image configured (`python:3.11-slim`, non-root user `agentshield:1000`).
 - [x] Health (`GET /health`), Readiness (`GET /health/ready`), and Version (`GET /version`) endpoints active.
 - [x] Complete environment variable contract documented in `.env.example`.
 - [x] CI/CD pipeline configuration verified (`.github/workflows/ci.yml`).

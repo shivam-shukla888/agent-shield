@@ -20,7 +20,7 @@ from app.main import create_app
 from app.repositories.scan import InMemoryScanRepository
 
 
-API_KEY = "sk-proj-TEST_AGENTGUARD_KEY_12345"
+API_KEY = "sk-proj-TEST_AGENTSHIELD_KEY_12345"
 
 
 def make_dummy_scan_response(scan_id: str = "SCAN_API_001") -> ScanResponse:
@@ -94,7 +94,7 @@ def test_markdown_report_returns_200():
 
     assert resp.status_code == 200
     assert "text/markdown" in resp.headers["content-type"]
-    assert "# AgentGuard Security Report" in resp.text
+    assert "# AgentShield Security Report" in resp.text
     assert "API Test Target" in resp.text
 
 

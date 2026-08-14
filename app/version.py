@@ -1,7 +1,7 @@
 """
-AgentGuard Version & Release Information (STEP 22B)
+AgentShield Version & Release Information (STEP 22B)
 
-This module defines single-source-of-truth versioning constants for AgentGuard v1.0.0.
+This module defines single-source-of-truth versioning constants for AgentShield v1.0.0.
 """
 
 __version__ = "1.0.0"

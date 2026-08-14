@@ -1,24 +1,24 @@
-# AgentGuard — Production Deployment Checklist
+# AgentShield — Production Deployment Checklist
 
 ## Pre-Deployment
 
 - [ ] **API Key**: Generate a strong `AGENTSHIELD_API_KEY` (`python -c "import secrets; print(secrets.token_urlsafe(32))"`)
 - [ ] **Database**: PostgreSQL 16+ instance provisioned and accessible
-- [ ] **DATABASE_URL**: Set `postgresql://user:password@host:5432/agentguard` (never commit)
+- [ ] **DATABASE_URL**: Set `postgresql://user:password@host:5432/agentshield` (never commit)
 - [ ] **Environment file**: `.env` created from `.env.example` with real values
 - [ ] **Secrets**: No real secrets committed to git (`.env` in `.gitignore`)
 
 ## Container Build
 
-- [ ] `docker build -t agentguard:latest .` completes successfully
+- [ ] `docker build -t agentshield:latest .` completes successfully
 - [ ] Image size is reasonable (< 500 MB)
-- [ ] Non-root user `agentguard` is active (`USER agentguard` in Dockerfile)
+- [ ] Non-root user `agentshield` is active (`USER agentshield` in Dockerfile)
 - [ ] No secrets baked into image layers
 
 ## TLS / Reverse Proxy
 
 - [ ] TLS termination via reverse proxy (nginx, Traefik, AWS ALB, etc.)
-- [ ] AgentGuard container listens on HTTP internally (port 8000)
+- [ ] AgentShield container listens on HTTP internally (port 8000)
 - [ ] Reverse proxy forwards `X-Request-ID` header if present
 - [ ] `Strict-Transport-Security` header configured at proxy layer
 - [ ] Rate limiting at proxy layer complements application-level limiting
@@ -75,13 +75,13 @@
 
 ## Upgrade Procedure
 
-1. Pull/build new image: `docker build -t agentguard:vX.Y.Z .`
+1. Pull/build new image: `docker build -t agentshield:vX.Y.Z .`
 2. Stop current container: `docker compose down`
 3. Update image tag in `docker-compose.yml`
 4. Start new container: `docker compose up -d`
 5. Verify health: `curl http://localhost:8000/health`
 6. Verify readiness: `curl http://localhost:8000/health/ready`
-7. Monitor logs: `docker compose logs -f agentguard`
+7. Monitor logs: `docker compose logs -f agentshield`
 
 ## Environment Variables Reference
 

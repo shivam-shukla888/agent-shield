@@ -1,4 +1,4 @@
-# AgentGuard — Deployment Guide
+# AgentShield — Deployment Guide
 
 ## Architecture Overview
 
@@ -17,7 +17,7 @@ CI Pipeline (.github/workflows/ci.yml)
 Release Artifact (Docker Image)
  ↓
 Deployment (docker compose up -d)
- ├── agentguard (FastAPI + Uvicorn)
+ ├── agentshield (FastAPI + Uvicorn)
  └── postgres (PostgreSQL 16)
 ```
 
@@ -96,14 +96,14 @@ curl http://localhost:8000/health
 curl http://localhost:8000/health/ready
 
 # Logs
-docker compose logs -f agentguard
+docker compose logs -f agentshield
 ```
 
 ## Docker Image
 
 The production Docker image:
 - Base: `python:3.11-slim`
-- Non-root user: `agentguard` (UID 1000)
+- Non-root user: `agentshield` (UID 1000)
 - ASGI server: Uvicorn
 - No secrets baked in
 - Minimal OS packages (only `curl` for health checks)

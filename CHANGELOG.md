@@ -1,8 +1,8 @@
-# AgentGuard Changelog
+# AgentShield Changelog
 
-All notable changes to the AgentGuard platform are documented in this file.
+All notable changes to the AgentShield platform are documented in this file.
 
-## [1.0.0] - 2026-08-13 (Production Release)
+## [1.0.0] - 2026-08-13 (Production Release) *(Originally released as AgentGuard; project renamed to AgentShield)*
 
 ### Core Security Scanning & Probes
 - Implemented core modular monolith scanner supporting HTTP targets (`GenericHTTPAdapter`).
@@ -38,6 +38,6 @@ All notable changes to the AgentGuard platform are documented in this file.
 - Masked secret strings (`SecretStr`) and sanitized HTTP error responses (zero stack trace disclosure).
 
 ### Containerization & Deployment
-- Production multi-stage Dockerfile with non-root runtime user (`agentguard:1000`).
+- Production multi-stage Dockerfile with non-root runtime user (`agentshield:1000`).
 - Docker Compose configuration with PostgreSQL service isolation and health checks.
 - GitHub Actions CI/CD pipeline running unit tests, security tests, and Docker validation.

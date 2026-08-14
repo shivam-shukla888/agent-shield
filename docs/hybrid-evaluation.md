@@ -2,7 +2,7 @@
 
 ## Overview & Rationale
 
-The **Hybrid Evaluation Strategy** (`HybridEvaluationStrategy`) in AgentGuard provides a policy and combination layer that merges judgments from both rule-based deterministic evaluation (`DeterministicEvaluator`) and LLM judge evaluation (`LLMEvaluator`) into a single, normalized `EvaluationResult`.
+The **Hybrid Evaluation Strategy** (`HybridEvaluationStrategy`) in AgentShield provides a policy and combination layer that merges judgments from both rule-based deterministic evaluation (`DeterministicEvaluator`) and LLM judge evaluation (`LLMEvaluator`) into a single, normalized `EvaluationResult`.
 
 Security probe evaluation requires both precision and contextual semantic reasoning:
 - **Deterministic Rules** excel at pattern matching (e.g. system instruction leaks, unauthorized tool call patterns) with high speed and zero false positives for known indicator signatures. However, rule-based engines miss novel or rephrased jailbreak responses.

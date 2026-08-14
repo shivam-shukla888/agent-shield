@@ -35,7 +35,7 @@ MOCK_SCANS_LIST = [
         "scan_id": "SCAN_20260814_B1290C",
         "status": "COMPLETED",
         "risk_score": 15,
-        "target": {"target_name": "Yojna Setu WhatsApp AI", "endpoint": "http://localhost:8000/chat"},
+        "target": {"target_name": "Internal HR Policy Bot", "endpoint": "http://localhost:8000/chat"},
         "findings": [],
     },
 ]
@@ -59,7 +59,7 @@ def check_backend_health(backend_url: str, timeout: float = 2.0) -> bool:
 
 def post_scan(backend_url: str, api_key: str, payload: Dict[str, Any], is_demo: bool = False) -> Optional[Dict[str, Any]]:
     if is_demo:
-        time.sleep(1.2)
+        time.sleep(0.4)
         scan_id = f"SCAN_{int(time.time())}"
         findings = [
             {

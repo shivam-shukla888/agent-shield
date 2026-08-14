@@ -2,7 +2,7 @@
 
 ## Overview & Architecture
 
-AgentGuard decouples security evaluation reasoning from vendor-specific LLM SDKs (`openai`, `anthropic`). The **Production LLM Provider Integration** (`ProductionLLMProvider`) implements a vendor-agnostic HTTP adapter using `httpx` to communicate with OpenAI-compatible REST endpoints (`/v1/chat/completions`).
+AgentShield decouples security evaluation reasoning from vendor-specific LLM SDKs (`openai`, `anthropic`). The **Production LLM Provider Integration** (`ProductionLLMProvider`) implements a vendor-agnostic HTTP adapter using `httpx` to communicate with OpenAI-compatible REST endpoints (`/v1/chat/completions`).
 
 ```
     LLMEvaluator

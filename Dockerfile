@@ -1,8 +1,8 @@
 # ============================================================
-# AgentGuard / AgentShield — Production Container Image
+# AgentShield — Production Container Image
 # ============================================================
 # - Base: python:3.11-slim (minimal, no dev tools).
-# - Non-root user "agentguard" (UID 1000).
+# - Non-root user "agentshield" (UID 1000).
 # - Zero baked-in secrets.
 # - Uvicorn ASGI production server.
 # ============================================================
@@ -16,11 +16,11 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # ---------- Non-root user ----------
-RUN groupadd --gid 1000 agentguard \
-    && useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash agentguard
+RUN groupadd --gid 1000 agentshield \
+    && useradd --uid 1000 --gid 1000 --create-home --shell /bin/bash agentshield
 
 # ---------- Application directory ----------
-WORKDIR /opt/agentguard
+WORKDIR /opt/agentshield
 
 # ---------- Python dependencies ----------
 COPY pyproject.toml ./
@@ -33,10 +33,10 @@ COPY . .
 RUN pip install --no-cache-dir .
 
 # ---------- Ownership ----------
-RUN chown -R agentguard:agentguard /opt/agentguard
+RUN chown -R agentshield:agentshield /opt/agentshield
 
 # ---------- Switch to non-root user ----------
-USER agentguard
+USER agentshield
 
 # ---------- Runtime ----------
 ENV APP_HOST=0.0.0.0 \

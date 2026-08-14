@@ -1,4 +1,4 @@
-# AgentGuard — System Reliability & Resilience Architecture (STEP 21B)
+# AgentShield — System Reliability & Resilience Architecture (STEP 21B)
 
 ## 1. Runtime Pipeline Architecture
 

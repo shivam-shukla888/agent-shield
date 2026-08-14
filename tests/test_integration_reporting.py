@@ -99,7 +99,7 @@ def test_end_to_end_reporting_pipeline():
     assert md_resp.status_code == 200
     assert "text/markdown" in md_resp.headers["content-type"]
     md_text = md_resp.text
-    assert "# AgentGuard Security Report" in md_text
+    assert "# AgentShield Security Report" in md_text
     assert "Tool Authorization Bypass" in md_text
     assert "Enforce tool permission checks" in md_text
 

@@ -1,8 +1,8 @@
-# AgentGuard — Security Validation & Threat Model Audit
+# AgentShield — Security Validation & Threat Model Audit
 
 ## 1. Threat Model & Trust Boundaries
 
-AgentGuard accepts target definitions and probe responses from external, untrusted network destinations. All inputs crossing trust boundaries are subjected to rigorous defensive validation.
+AgentShield accepts target definitions and probe responses from external, untrusted network destinations. All inputs crossing trust boundaries are subjected to rigorous defensive validation.
 
 ```
 Client Request (API Key / Payload)

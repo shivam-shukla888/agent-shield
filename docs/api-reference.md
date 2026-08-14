@@ -1,4 +1,4 @@
-# AgentGuard — REST API Reference (v1)
+# AgentShield — REST API Reference (v1)
 
 Base URL: `/api/v1`
 

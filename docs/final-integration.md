@@ -1,8 +1,8 @@
-# AgentGuard — Final System Integration & End-to-End Architecture
+# AgentShield — Final System Integration & End-to-End Architecture
 
 ## 1. Complete System Architecture & Dataflow
 
-AgentGuard is a production-grade, modular security testing platform built to evaluate AI agents against threat vectors safely and deterministically.
+AgentShield is a production-grade, modular security testing platform built to evaluate AI agents against threat vectors safely and deterministically.
 
 ```
 Client

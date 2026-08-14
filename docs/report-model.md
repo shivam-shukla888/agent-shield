@@ -11,7 +11,7 @@ The Security Report Domain Model defines strongly typed, immutable Data Transfer
 1. **Strict Immutability**: All top-level report models use `model_config = ConfigDict(frozen=True)` to prevent field reassignment.
 2. **Zero Credentials**: Report models NEVER store target passwords, bearer tokens, API keys, database URLs, or `TargetAuthConfig` objects.
 3. **No Raw HTTP Headers or Bodies**: Raw target response bodies, internal adapter metadata, and raw HTTP headers are excluded.
-4. **No CVSS Scoring**: AgentGuard uses contextual AI agent risk scoring (`RiskAssessment`). Standard CVSS metrics are not used.
+4. **No CVSS Scoring**: AgentShield uses contextual AI agent risk scoring (`RiskAssessment`). Standard CVSS metrics are not used.
 5. **Bounded Score Fields**: `confidence` is bounded within `[0.0, 1.0]` and `risk_score` is bounded within `[0.0, 100.0]`.
 
 ---

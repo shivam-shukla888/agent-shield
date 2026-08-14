@@ -344,14 +344,14 @@ class ScanService:
 
         if clean_fmt == "markdown":
             markdown_text = self.report_engine.render_markdown(report)
-            return markdown_text, "text/markdown", f"agentguard-report-{safe_scan_id}.md"
+            return markdown_text, "text/markdown", f"agentshield-report-{safe_scan_id}.md"
         elif clean_fmt == "json":
             report_dict = self.report_engine.to_dict(report)
-            return report_dict, "application/json", f"agentguard-report-{safe_scan_id}.json"
+            return report_dict, "application/json", f"agentshield-report-{safe_scan_id}.json"
         elif clean_fmt == "html":
             html_text = self.report_engine.render_html(report)
-            return html_text, "text/html", f"agentguard-report-{safe_scan_id}.html"
+            return html_text, "text/html", f"agentshield-report-{safe_scan_id}.html"
         else:
             pdf_bytes = self.report_engine.render_pdf(report)
-            return pdf_bytes, "application/pdf", f"agentguard-report-{safe_scan_id}.pdf"
+            return pdf_bytes, "application/pdf", f"agentshield-report-{safe_scan_id}.pdf"
 

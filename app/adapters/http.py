@@ -292,7 +292,7 @@ class GenericHTTPAdapter(TargetAdapter):
         """
         Construct HTTP headers applying static and authentication headers.
         Credentials are read safely via SecretStr without logging.
-        Strips dangerous hop-by-hop and AgentGuard internal auth headers, and cleans CRLF characters.
+        Strips dangerous hop-by-hop and AgentShield internal auth headers, and cleans CRLF characters.
         """
         headers: Dict[str, str] = {}
         for k, v in self.config.headers.items():

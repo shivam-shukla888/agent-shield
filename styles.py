@@ -177,6 +177,33 @@ GLOBAL_CSS = """
         font-family: var(--font-code);
         color: var(--accent-teal);
     }
+
+    /* Restrained footer credit (no glow, no gradient) */
+    .footer-credit {
+        color: var(--text-dark);
+        font-size: 0.75rem;
+        font-family: var(--font-code);
+        text-align: center;
+        padding: 1rem 0 0.5rem 0;
+    }
+    .footer-credit a {
+        color: var(--text-subtle);
+        text-decoration: none;
+    }
+    .footer-credit a:hover {
+        color: var(--accent-teal);
+    }
+
+    /* Probe category group header */
+    .probe-category-label {
+        font-family: var(--font-code);
+        color: var(--text-subtle);
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-top: 0.75rem;
+        margin-bottom: 0.25rem;
+    }
 </style>
 """
 

@@ -109,7 +109,7 @@ def test_all_four_formats_for_completed_scan():
     r_md = client.get("/api/v1/scans/SCAN_COMPLETED_4FMT/report?format=markdown", headers={"X-API-Key": API_KEY})
     assert r_md.status_code == 200
     assert "text/markdown" in r_md.headers["content-type"]
-    assert "# AgentGuard Security Report" in r_md.text
+    assert "# AgentShield Security Report" in r_md.text
 
     # 2. JSON
     r_js = client.get("/api/v1/scans/SCAN_COMPLETED_4FMT/report?format=json", headers={"X-API-Key": API_KEY})

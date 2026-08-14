@@ -259,13 +259,13 @@ Detailed architectural blueprints are available in the [`docs/`](./docs) directo
 
 ---
 
-## 9. Open Architectural Questions
+## 9. Architectural Decisions & Resolutions
 
-> [!IMPORTANT]
-> **Open Decision 1: Target Adapter Response Parsing Fallback**
-> When targeting a generic HTTP agent whose response schema is undeclared, should `GenericHTTPAdapter` attempt automatic JSON key extraction (e.g., checking `"response"`, `"output"`, `"message"`, `"text"`) or strictly require explicit JSONPath mapping configuration?
+> [!NOTE]
+> **Decision 1: Target Adapter Response Parsing Fallback — Resolved**  
+> `GenericHTTPAdapter` supports automatic key fallback (`"response"`, `"answer"`, `"output"`, `"text"`, `"message"`, `"content"`) when no explicit `response_path` is configured, while honoring explicit JSONPath mapping when supplied.
 
-> [!IMPORTANT]
-> **Open Decision 2: LLM Judge Provider Selection**
-> Should the default LLM Judge rely on cloud LLM APIs (e.g., Groq / Claude 3.5) for high accuracy, or support local small models (e.g., Ollama / Llama 3 8B) for zero-data-leakage enterprise environments?
+> [!NOTE]
+> **Decision 2: LLM Judge Provider Selection — Resolved**  
+> `ProductionLLMProvider` uses a vendor-agnostic OpenAI-compatible REST interface (`/v1/chat/completions`), allowing seamless deployment with both cloud LLM APIs (OpenAI, Groq) and local open-weights model servers (Ollama, vLLM) for zero-data-leakage enterprise environments.
 

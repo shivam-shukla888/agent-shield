@@ -1,4 +1,4 @@
-# AgentGuard — Performance Baseline & Load Benchmark Documentation (STEP 21B)
+# AgentShield — Performance Baseline & Load Benchmark Documentation (STEP 21B)
 
 ## 1. Benchmark Environment & Methodology
 
