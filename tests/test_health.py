@@ -23,3 +23,11 @@ def test_root_endpoint() -> None:
     assert data["name"] == "AgentShield API"
     assert data["version"] == __version__
     assert data["docs_url"] == "/docs"
+
+
+def test_dashboard_ui() -> None:
+    """Test that GET /dashboard returns HTTP 200 HTML content."""
+    response = client.get("/dashboard")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "AgentShield" in response.text

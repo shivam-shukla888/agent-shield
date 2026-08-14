@@ -5,9 +5,11 @@ AgentShield FastAPI Main Application & Composition Root
 import os
 from typing import Optional
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 from sqlalchemy import create_engine
+
+from app.dashboard import DASHBOARD_HTML
 
 from app.version import __api_version__, __version__
 
@@ -46,6 +48,7 @@ class RootResponse(BaseModel):
     name: str = "AgentShield API"
     description: str = "AI Agent Security Testing & Risk Analysis Platform"
     version: str = __version__
+    dashboard_url: str = "/dashboard"
     docs_url: str = "/docs"
     health_url: str = "/health"
     version_url: str = "/version"
@@ -128,6 +131,12 @@ def create_app(
     def root_endpoint() -> RootResponse:
         """Root endpoint returning platform overview and API documentation links."""
         return RootResponse()
+
+    @application.get("/dashboard", response_class=HTMLResponse)
+    @application.get("/ui", response_class=HTMLResponse)
+    def dashboard_ui() -> HTMLResponse:
+        """Interactive Web Security Audit Dashboard UI."""
+        return HTMLResponse(content=DASHBOARD_HTML)
 
     @application.get("/health", response_model=HealthResponse)
     def health_check() -> HealthResponse:
