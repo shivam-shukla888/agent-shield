@@ -25,11 +25,17 @@ styles.inject_styles()
 # -----------------------------------------------------------------------------
 # SESSION STATE INITIALIZATION
 # -----------------------------------------------------------------------------
+def get_secret(key: str, default: str) -> str:
+    try:
+        return st.secrets.get(key, default)
+    except Exception:
+        return default
+
 if "backend_url" not in st.session_state:
-    st.session_state.backend_url = st.secrets.get("BACKEND_URL", "http://localhost:8000")
+    st.session_state.backend_url = get_secret("BACKEND_URL", "http://localhost:8000")
 
 if "api_key" not in st.session_state:
-    st.session_state.api_key = st.secrets.get("API_KEY", "changeme-generate-a-real-key")
+    st.session_state.api_key = get_secret("API_KEY", "changeme-generate-a-real-key")
 
 if "target_auth_header" not in st.session_state:
     st.session_state.target_auth_header = ""
