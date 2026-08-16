@@ -77,6 +77,7 @@ All other schemes (`file://`, `ftp://`, `gopher://`, `data://`, `javascript://`,
 1. **Pre-Connection Resolution**: Hostname destinations undergo DNS resolution (`socket.getaddrinfo`).
 2. **Multi-IP Validation**: Every IP address returned by DNS is evaluated against `SSRFPolicy`. If any IP belongs to a blocked range, the target is REJECTED.
 3. **DNS Rebinding Protection**: Automatic HTTP redirects are explicitly disabled (`follow_redirects=False`) in `GenericHTTPAdapter` to prevent redirect-based rebinding to private IPs.
+4. **TOCTOU / Rebinding Pinning (IMPLEMENTED)**: `SSRFValidator.resolve_and_validate()` returns the exact hostname + IP(s) checked against policy, and `pinned_dns_resolution(hostname, ip)` forces the outbound `httpx` connection to use that same IP — closing the gap where a malicious DNS record could resolve to a different (blocked) IP between validation and connection. See `app/adapters/http.py::GenericHTTPAdapter.send()`.
 
 ---
 
@@ -90,4 +91,4 @@ All other schemes (`file://`, `ftp://`, `gopher://`, `data://`, `javascript://`,
 
 ## 6. CURRENT LIMITATIONS & FUTURE HARDENING
 
-- **Pinned IP Binding**: In high-security production deployments, custom HTTP transport socket pinning (connecting directly to resolved IP while specifying Host header) can be enabled to provide cryptographically strict DNS rebinding immunity.
+- **DNS Rebinding Pinning — Concurrency Scope**: Pinned IP binding (see §4) is implemented via a process-wide `socket.getaddrinfo` patch scoped to the request. This is safe for AgentShield's current sequential (one target request at a time) scan execution model. If scan execution is parallelized to fire concurrent outbound target requests from multiple threads, this should be upgraded to a per-connection transport-level pin (e.g. a custom `httpx` transport) instead of a global monkeypatch.

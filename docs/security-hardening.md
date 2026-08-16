@@ -68,5 +68,5 @@ All API HTTP responses include defense-in-depth HTTP security headers:
 
 ## 6. Residual Risks
 
-- **DNS Rebinding**: In environments without a pinning proxy, rapid DNS IP change between validation and connection remains a theoretical vector. Mitigated by short connection timeouts.
+- **DNS Rebinding**: Closed via `SSRFValidator.resolve_and_validate()` + `pinned_dns_resolution()`, which pins the outbound connection to the exact IP validated against SSRF policy (see `docs/ssrf-security.md` §4). Residual scope: the pin uses a process-wide `socket.getaddrinfo` patch, safe for the current sequential scan model but would need a transport-level pin if scanning is parallelized.
 - **Target Latency Exhaustion**: Slow target responses can consume worker connections up to `timeout_seconds` (bounded to max 300s).
