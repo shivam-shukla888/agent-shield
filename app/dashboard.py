@@ -13,34 +13,38 @@ DASHBOARD_HTML = """<!DOCTYPE html>
         /* -------------------------------------------------------------
            WORLD-CLASS SELF-CONTAINED INLINE CSS DESIGN SYSTEM
            ------------------------------------------------------------- */
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
         :root {
-            --bg-body: #060913;
-            --bg-nav: rgba(10, 14, 29, 0.92);
-            --bg-card: rgba(16, 23, 42, 0.75);
-            --bg-card-hover: rgba(23, 32, 58, 0.9);
-            --bg-input: rgba(8, 12, 24, 0.85);
+            --bg-body: #faf8ff;
+            --bg-nav: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f2f3ff;
+            --bg-input: #ffffff;
             
-            --border-subtle: rgba(255, 255, 255, 0.08);
-            --border-glow: rgba(99, 102, 241, 0.4);
-            --border-active: #6366f1;
+            --border-subtle: #c3c6d7;
+            --border-glow: rgba(0, 74, 198, 0.2);
+            --border-active: #004ac6;
             
-            --accent-indigo: #6366f1;
-            --accent-cyan: #06b6d4;
-            --accent-emerald: #10b981;
-            --accent-amber: #f59e0b;
-            --accent-rose: #f43f5e;
-            --accent-purple: #a855f7;
+            --accent-indigo: #004ac6;
+            --accent-cyan: #2563eb;
+            --accent-emerald: #006c4a;
+            --accent-amber: #d97706;
+            --accent-rose: #d52022;
+            --accent-purple: #0053db;
             
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --text-dark: #64748b;
+            --text-main: #131b2e;
+            --text-muted: #434655;
+            --text-dark: #737686;
 
-            --font-main: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --font-code: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+            --font-main: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-headline: "Plus Jakarta Sans", sans-serif;
+            --font-code: "JetBrains Mono", monospace;
 
-            --radius-lg: 18px;
-            --radius-md: 12px;
-            --radius-sm: 8px;
+            --radius-lg: 1rem;
+            --radius-md: 0.75rem;
+            --radius-sm: 0.5rem;
         }
 
         * {
@@ -51,11 +55,6 @@ DASHBOARD_HTML = """<!DOCTYPE html>
 
         body {
             background-color: var(--bg-body);
-            background-image: 
-                radial-gradient(circle at 10% 10%, rgba(99, 102, 241, 0.18) 0%, transparent 40%),
-                radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.15) 0%, transparent 45%),
-                radial-gradient(circle at 50% 50%, rgba(168, 85, 247, 0.1) 0%, transparent 50%);
-            background-attachment: fixed;
             color: var(--text-main);
             font-family: var(--font-main);
             min-height: 100vh;

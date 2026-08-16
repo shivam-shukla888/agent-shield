@@ -203,6 +203,21 @@ The initial release focuses on establishing a clean **Modular Monolith** archite
 
 ---
 
+### 🎨 Cybernetic Precision Design System Integration
+
+AgentShield implements the **Cybernetic Precision Light Theme** design system across both the Streamlit UI and the standalone FastAPI Web Audit Dashboard (`/dashboard`).
+
+* **Design Source of Truth**: [`design/stitch_mockups/stitch_agentshield_security_platform/cybernetic_precision/DESIGN.md`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/cybernetic_precision/DESIGN.md)
+* **Tokens**: Primary Electric Blue (`#004AC6`), Success Emerald (`#006C4A`), Error Crimson (`#D52022`), Slate Canvas (`#FAF8FF`), Surface (`#FFFFFF`), Text (`#131B2E`).
+* **Typography**: **Plus Jakarta Sans** (Headlines) + **Inter** (Body/Labels) + **JetBrains Mono** (Telemetry/IDs/Hashes/Logs).
+* **Workstation Screens**:
+  1. **Executive Security Overview**: [`executive_security_overview_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/executive_security_overview_polished/)
+  2. **Scan Studio & Pipeline Orchestrator**: [`pipeline_orchestrator_scan_studio_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/pipeline_orchestrator_scan_studio_polished/)
+  3. **Audit Log & Forensic Inspector**: [`audit_log_forensic_inspector_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/audit_log_forensic_inspector_polished/)
+  4. **Adversarial Sandbox & Diagnostics**: [`adversarial_sandbox_diagnostics_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/adversarial_sandbox_diagnostics_polished/)
+
+---
+
 ## 8. Streamlit Community Cloud Deployment
 
 AgentShield includes a production Streamlit client app (`streamlit_app.py`).
