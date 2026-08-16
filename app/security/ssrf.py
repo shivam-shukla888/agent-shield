@@ -218,3 +218,97 @@ class SSRFValidator:
                 return False, f"Destination IP address is blocked: {reason}"
 
         return True, ""
+
+    def resolve_and_validate(self, url: str) -> "SSRFResolution":
+        """
+        Validate a target URL AND return the exact hostname + resolved IP(s) that were
+        checked against SSRF policy.
+
+        WHY THIS EXISTS (DNS rebinding protection):
+        `validate_url()` alone is vulnerable to a TOCTOU (time-of-check-to-time-of-use) DNS
+        rebinding attack: an attacker-controlled DNS name can resolve to a safe public IP at
+        validation time, then resolve to a private/internal IP milliseconds later when the
+        HTTP client itself performs its own independent DNS lookup to connect.
+
+        Callers that make an outbound request MUST use this method and pin the connection to
+        the IP(s) returned here (e.g. via `pinned_dns_resolution()`) rather than letting the
+        HTTP client re-resolve the hostname itself.
+        """
+        is_safe, reason = self.validate_url(url)
+        parsed = urlparse(url.strip()) if is_safe else None
+        hostname = (parsed.hostname or "").lower().rstrip(".") if parsed else ""
+        port = parsed.port if parsed else None
+
+        resolved_ips: List[str] = []
+        if is_safe and hostname:
+            try:
+                ip_obj = ipaddress.ip_address(hostname)
+                resolved_ips = [str(ip_obj)]
+            except ValueError:
+                try:
+                    resolved_ips = self.dns_resolver(hostname)
+                except Exception:
+                    resolved_ips = []
+
+        return SSRFResolution(
+            is_safe=is_safe,
+            reason=reason,
+            hostname=hostname,
+            port=port,
+            resolved_ips=resolved_ips,
+        )
+
+
+class SSRFResolution:
+    """Result of `SSRFValidator.resolve_and_validate()` — the validated hostname/IP pair
+    that an HTTP client should be pinned to for the actual outbound connection."""
+
+    __slots__ = ("is_safe", "reason", "hostname", "port", "resolved_ips")
+
+    def __init__(
+        self,
+        is_safe: bool,
+        reason: str,
+        hostname: str,
+        port: Optional[int],
+        resolved_ips: List[str],
+    ) -> None:
+        self.is_safe = is_safe
+        self.reason = reason
+        self.hostname = hostname
+        self.port = port
+        self.resolved_ips = resolved_ips
+
+
+import contextlib
+import socket as _socket_module
+
+
+@contextlib.contextmanager
+def pinned_dns_resolution(hostname: str, pinned_ip: str):
+    """
+    Context manager that forces `socket.getaddrinfo` to resolve `hostname` to the single
+    `pinned_ip` that already passed SSRF validation, for the duration of the outbound request.
+
+    This closes the DNS-rebinding gap between SSRF validation and the actual HTTP connection:
+    the HTTP client will connect to the exact IP that was checked, not to whatever the
+    hostname resolves to at connection time.
+
+    NOTE: this patches `socket.getaddrinfo` process-wide for the duration of the `with` block.
+    It is safe for this codebase's sequential (one target request at a time) scan execution
+    model. If scan execution is ever parallelized to fire multiple outbound target requests
+    concurrently from different threads, this needs to move to a per-connection transport-level
+    pin (e.g. a custom httpx transport) instead of a global monkeypatch.
+    """
+    original_getaddrinfo = _socket_module.getaddrinfo
+
+    def _pinned_getaddrinfo(host, port, family=0, type=0, proto=0, flags=0):
+        if host == hostname:
+            return [(_socket_module.AF_INET, _socket_module.SOCK_STREAM, 6, "", (pinned_ip, port))]
+        return original_getaddrinfo(host, port, family, type, proto, flags)
+
+    _socket_module.getaddrinfo = _pinned_getaddrinfo
+    try:
+        yield
+    finally:
+        _socket_module.getaddrinfo = original_getaddrinfo

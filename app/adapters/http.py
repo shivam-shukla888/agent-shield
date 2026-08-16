@@ -13,6 +13,7 @@ SECURITY & ARCHITECTURAL DIRECTIVES:
 - Target response payloads are treated as UNTRUSTED external data.
 """
 
+import contextlib
 import time
 from typing import Any, Dict, Optional
 
@@ -26,7 +27,7 @@ from app.domain.target import (
     TargetErrorCode,
     TargetResult,
 )
-from app.security.ssrf import SSRFValidator
+from app.security.ssrf import SSRFValidator, pinned_dns_resolution
 
 MAX_RESPONSE_BYTES = 5 * 1024 * 1024  # 5 MB limit
 
@@ -120,9 +121,13 @@ class GenericHTTPAdapter(TargetAdapter):
                 ),
             )
 
-        # 2. SSRF Security Boundary Validation BEFORE outbound transport connection
-        is_safe, ssrf_reason = self._ssrf_validator.validate_url(self.config.endpoint)
-        if not is_safe:
+        # 2. SSRF Security Boundary Validation BEFORE outbound transport connection.
+        # Uses resolve_and_validate() (not validate_url()) so we get back the exact IP that
+        # was checked, and pin the actual connection to it — this closes a DNS-rebinding gap
+        # where the hostname could resolve to a different (private/internal) IP at connect
+        # time than it did at validation time.
+        resolution = self._ssrf_validator.resolve_and_validate(self.config.endpoint)
+        if not resolution.is_safe:
             return TargetResult(
                 success=False,
                 error=TargetError(
@@ -137,26 +142,34 @@ class GenericHTTPAdapter(TargetAdapter):
 
         start_time = time.monotonic()
 
-        # 3. Execute HTTP request using injected or ephemeral client (follow_redirects=False)
+        # 3. Execute HTTP request using injected or ephemeral client (follow_redirects=False).
+        # DNS is pinned to the already-validated IP for the duration of this request.
+        pin_ip = resolution.resolved_ips[0] if resolution.resolved_ips else None
+        dns_pin_ctx = (
+            pinned_dns_resolution(resolution.hostname, pin_ip)
+            if pin_ip
+            else contextlib.nullcontext()
+        )
         try:
-            if self._client is not None:
-                response = self._client.request(
-                    method=self.config.method,
-                    url=self.config.endpoint,
-                    json=body,
-                    headers=headers,
-                    timeout=self.config.timeout_seconds,
-                    follow_redirects=False,
-                )
-            else:
-                with httpx.Client(timeout=self.config.timeout_seconds, follow_redirects=False) as client:
-                    response = client.request(
+            with dns_pin_ctx:
+                if self._client is not None:
+                    response = self._client.request(
                         method=self.config.method,
                         url=self.config.endpoint,
                         json=body,
                         headers=headers,
+                        timeout=self.config.timeout_seconds,
                         follow_redirects=False,
                     )
+                else:
+                    with httpx.Client(timeout=self.config.timeout_seconds, follow_redirects=False) as client:
+                        response = client.request(
+                            method=self.config.method,
+                            url=self.config.endpoint,
+                            json=body,
+                            headers=headers,
+                            follow_redirects=False,
+                        )
         except httpx.TimeoutException:
             latency_ms = (time.monotonic() - start_time) * 1000.0
             return TargetResult(

@@ -4,6 +4,8 @@
 
 AgentShield is an enterprise-grade security testing framework designed to audit, evaluate, and quantify security risks in LLM-powered autonomous AI agents and agentic workflows operating in a **local, CI/CD, or controlled security testing environment**.
 
+> ⚠️ **Production note:** The Streamlit UI ships with a placeholder API key default (`changeme-generate-a-real-key`) purely for local development convenience. Before deploying anywhere reachable outside your own machine, set the `AGENTSHIELD_API_KEY` environment variable to a real, secret value — the backend will refuse to start with a weak/missing key in production mode, but the UI's local default should never be relied upon.
+
 ---
 
 ## 1. The Problem AgentShield Solves
