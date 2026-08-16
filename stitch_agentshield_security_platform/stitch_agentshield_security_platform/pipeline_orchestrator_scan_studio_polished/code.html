@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sentinel AI Engine - Scan Studio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "on-primary-fixed-variant": "#003ea8",
+                    "primary-fixed-dim": "#b4c5ff",
+                    "surface-bright": "#faf8ff",
+                    "error": "#ba1a1a",
+                    "on-secondary-fixed-variant": "#005137",
+                    "surface-container-lowest": "#ffffff",
+                    "secondary-fixed-dim": "#68dba9",
+                    "secondary": "#006c4a",
+                    "surface-container-low": "#f2f3ff",
+                    "on-background": "#131b2e",
+                    "tertiary-container": "#d52022",
+                    "on-surface-variant": "#434655",
+                    "on-secondary-container": "#00714e",
+                    "primary": "#004ac6",
+                    "background": "#faf8ff",
+                    "on-secondary-fixed": "#002114",
+                    "on-error-container": "#93000a",
+                    "error-container": "#ffdad6",
+                    "outline-variant": "#c3c6d7",
+                    "surface-container-high": "#e2e7ff",
+                    "on-primary-container": "#eeefff",
+                    "on-primary-fixed": "#00174b",
+                    "secondary-container": "#82f5c1",
+                    "on-surface": "#131b2e",
+                    "primary-container": "#2563eb",
+                    "secondary-fixed": "#85f8c4",
+                    "on-tertiary": "#ffffff",
+                    "on-tertiary-fixed": "#410002",
+                    "surface-variant": "#dae2fd",
+                    "tertiary-fixed": "#ffdad6",
+                    "surface-dim": "#d2d9f4",
+                    "surface": "#faf8ff",
+                    "on-primary": "#ffffff",
+                    "on-tertiary-container": "#ffecea",
+                    "on-error": "#ffffff",
+                    "surface-container": "#eaedff",
+                    "inverse-primary": "#b4c5ff",
+                    "surface-tint": "#0053db",
+                    "inverse-on-surface": "#eef0ff",
+                    "outline": "#737686",
+                    "tertiary": "#ae0010",
+                    "surface-container-highest": "#dae2fd",
+                    "tertiary-fixed-dim": "#ffb4ab",
+                    "primary-fixed": "#dbe1ff",
+                    "on-tertiary-fixed-variant": "#93000b",
+                    "inverse-surface": "#283044",
+                    "on-secondary": "#ffffff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "12px",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "xs": "4px",
+                    "md": "16px",
+                    "xl": "48px",
+                    "sm": "8px",
+                    "margin-desktop": "32px",
+                    "margin-mobile": "16px",
+                    "unit": "4px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "headline-sm": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "label-caps": [
+                            "JetBrains Mono"
+                    ],
+                    "code-sm": [
+                            "JetBrains Mono"
+                    ],
+                    "body-sm": [
+                            "Inter"
+                    ],
+                    "code-md": [
+                            "JetBrains Mono"
+                    ],
+                    "display-lg": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-lg": [
+                            "Inter"
+                    ],
+                    "headline-md": [
+                            "Plus Jakarta Sans"
+                    ],
+                    "body-md": [
+                            "Inter"
+                    ]
+            },
+            "fontSize": {
+                    "headline-sm": [
+                            "18px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "label-caps": [
+                            "11px",
+                            {
+                                    "lineHeight": "14px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "code-sm": [
+                            "11px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "body-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "code-md": [
+                            "13px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "500"
+                            }
+                    ],
+                    "display-lg": [
+                            "40px",
+                            {
+                                    "lineHeight": "48px",
+                                    "letterSpacing": "-0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-lg": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "headline-md": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "-0.01em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "body-md": [
+                            "14px",
+                            {
+                                    "lineHeight": "20px",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+        
+        /* Node Canvas Background */
+        .dot-pattern {
+            background-image: radial-gradient(var(--tw-colors-outline-variant) 1px, transparent 1px);
+            background-size: 8px 8px;
+        }
+
+        /* Connecting Lines SVGs */
+        svg.connector {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        /* Custom Scrollbar for Terminal */
+        .terminal-scroll::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        .terminal-scroll::-webkit-scrollbar-track {
+            background: #1e293b;
+        }
+        .terminal-scroll::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 4px;
+        }
+        
+        /* Node styles */
+        .node-card {
+            z-index: 10;
+            position: absolute;
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .node-card:hover {
+            box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -1px rgba(15, 23, 42, 0.03);
+            border-color: #004ac6;
+        }
+        
+        /* Config Panel Slide */
+        .config-panel {
+            transform: translateX(100%);
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .config-panel.open {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen overflow-hidden flex font-body-md">
+<!-- SideNavBar -->
+<nav class="hidden md:flex flex-col h-full py-md px-sm bg-surface-container-lowest border-r border-outline-variant w-[280px] shrink-0 z-50 fixed left-0 top-0">
+<!-- Header -->
+<div class="flex items-center gap-sm mb-lg px-sm">
+<div class="w-10 h-10 rounded-full overflow-hidden border border-outline-variant shrink-0">
+<img alt="System Operator" class="w-full h-full object-cover" data-alt="A professional, hyper-realistic portrait of a system operator in a modern control room. Light mode aesthetic, bright, high key lighting, neutral background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCC0Bjlhk1sCl7L0iSC_nn22-Eef6xdRhU61h0RVF4J5_ERYGm_-3fRWKGYQqvPx-3vE0oB5d1CYasG4yCIaHHCayymK7zx9kNEEVUTlsnwJKKFCvwtB8FzXIJQHSWkdVOrZuD1f66DaMiarYVPoR19WLh2oDVweaSpgusFadBBb7ANnAWCZ0dcCKc48_gzkLu1EvJ98U_gkSsRiOArvUOT35KVVoKvNZkyLW-67kxjZNRhZLaJq8F4Ig"/>
+</div>
+<div>
+<div class="font-headline-md text-headline-md font-extrabold text-primary">Operator Console</div>
+<div class="font-label-caps text-label-caps text-on-surface-variant uppercase">Precision Security</div>
+</div>
+</div>
+<!-- CTA -->
+<button class="w-full bg-primary text-on-primary font-body-sm font-medium py-2 px-4 rounded-md mb-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined text-[18px]">add</span>
+            New Pipeline
+        </button>
+<!-- Main Nav Tabs -->
+<div class="flex-1 space-y-xs">
+<a class="flex items-center gap-sm px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-surface">dashboard</span>
+<span class="font-body-md text-body-md group-hover:text-on-surface">Overview</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-md text-primary font-bold border-r-4 border-primary bg-surface-container-high/50 transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined text-[20px] fill">account_tree</span>
+<span class="font-body-md text-body-md">Scan Studio</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-surface">history_edu</span>
+<span class="font-body-md text-body-md group-hover:text-on-surface">Audit Log</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-[20px] group-hover:text-on-surface">security</span>
+<span class="font-body-md text-body-md group-hover:text-on-surface">Adversarial Sandbox</span>
+</a>
+</div>
+<!-- Footer Tabs -->
+<div class="mt-auto space-y-xs border-t border-outline-variant pt-sm">
+<a class="flex items-center gap-sm px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="font-body-sm text-body-sm">Docs</span>
+</a>
+<a class="flex items-center gap-sm px-md py-sm rounded-md text-on-surface-variant hover:bg-surface-container transition-all duration-200 ease-in-out group" href="#">
+<span class="material-symbols-outlined text-[20px]">contact_support</span>
+<span class="font-body-sm text-body-sm">Support</span>
+</a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col md:ml-[280px] h-screen relative bg-surface-bright">
+<!-- TopNavBar -->
+<header class="flex justify-between items-center px-lg h-16 w-full z-40 bg-surface border-b border-outline-variant shrink-0">
+<div class="flex items-center gap-md">
+<h1 class="font-headline-sm text-headline-sm font-bold text-primary flex items-center gap-sm">
+    Sentinel AI Engine 
+    <span class="text-outline-variant material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-on-surface-variant font-medium">Scan Studio</span>
+<span class="text-outline-variant material-symbols-outlined text-[16px]">chevron_right</span>
+<span class="text-on-surface-variant font-medium">PROD-US-EAST</span>
+</h1>
+<div class="hidden md:flex bg-surface-container-low px-sm py-xs rounded text-on-surface-variant text-code-sm font-code-sm items-center gap-xs border border-outline-variant">
+<span class="material-symbols-outlined text-[14px]">search</span>
+<span class="opacity-70">Cmd+K to search</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="hidden lg:flex gap-md text-on-surface-variant font-code-md text-code-md">
+<span>Environment: PROD-US-EAST</span>
+<span class="text-secondary-fixed-dim">Latency: 142ms</span>
+</div>
+<div class="h-6 w-px bg-outline-variant mx-sm"></div>
+<div class="flex items-center gap-sm">
+<button class="text-on-surface-variant hover:bg-surface-container-low p-sm rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="text-on-surface-variant hover:bg-surface-container-low p-sm rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications_active</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-tertiary-container rounded-full"></span>
+</button>
+</div>
+<button class="bg-surface-container text-primary font-body-sm font-medium py-1.5 px-3 border border-outline-variant rounded hover:bg-surface-container-high transition-colors ml-xs">
+                    Deploy Agent
+                </button>
+<div class="flex items-center gap-sm ml-sm hidden sm:flex">
+<span class="font-code-sm text-on-surface-variant">shivam@agentshield.io</span>
+<div class="w-8 h-8 rounded-full border border-outline-variant overflow-hidden">
+<img alt="Engineer Avatar" class="w-full h-full object-cover" data-alt="A small, circular avatar portrait of an engineer, clean bright aesthetic, white background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0e3YPUMSG4hKYscqflxhZOo0vUDvvP4kEd25_pBgzUVGteVUwjX552prsV8EShzbNM2Zkiij-hMnTuDM3R_4XP7nLbjgD4i1OABXYPLtaMlwKu1j8x8oim9SjwrQtmcxQM9pfsodxa9HVgxc7Wz_-u3nIrftYNn6yO1jCHBZmg0p2CoZuialMRiVJn5fHXzSfPbdtWZrpxxS0RRjArDa5Dx3ydCujLp1xe2vK6s-O5BrRB1zRw7DLNQ"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Canvas Area -->
+<div class="flex-1 relative overflow-hidden dot-pattern w-full">
+<!-- Nodes Container -->
+<div class="absolute inset-0 cursor-grab active:cursor-grabbing w-[2000px] h-[1500px]" id="canvas-container" style="transform: translate(-100px, -50px);">
+<!-- SVG Connections -->
+<svg class="connector">
+<defs>
+<marker id="arrowhead" markerheight="7" markerwidth="10" orient="auto" refx="9" refy="3.5">
+<polygon fill="#c3c6d7" points="0 0, 10 3.5, 0 7"></polygon>
+</marker>
+</defs>
+<!-- Target -> SSRF -->
+<path d="M 400 250 C 450 250, 450 250, 500 250" fill="none" marker-end="url(#arrowhead)" stroke="#c3c6d7" stroke-width="2"></path>
+<!-- SSRF -> Probe -->
+<path d="M 780 250 C 830 250, 830 250, 880 250" fill="none" marker-end="url(#arrowhead)" stroke="#c3c6d7" stroke-width="2"></path>
+<!-- Probe -> Evaluator -->
+<path d="M 1160 250 C 1210 250, 1210 250, 1260 250" fill="none" marker-end="url(#arrowhead)" stroke="#c3c6d7" stroke-width="2"></path>
+<!-- Evaluator -> Risk -->
+<path d="M 1540 250 C 1590 250, 1590 250, 1640 250" fill="none" marker-end="url(#arrowhead)" stroke="#c3c6d7" stroke-width="2"></path>
+</svg>
+<!-- Node: Target -->
+<div class="node-card bg-surface w-[280px] border border-outline-variant rounded-xl p-lg shadow-sm cursor-pointer left-[120px] top-[200px]" onclick="openConfig('Target HTTP REST Agent')">
+<div class="flex items-center gap-sm border-b border-outline-variant pb-sm mb-sm">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">activity</span>
+</div>
+<div class="font-body-md font-medium text-on-surface">agent-gateway.internal.net</div>
+</div>
+<div class="space-y-xs font-code-sm text-code-sm text-on-surface-variant">
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Method:</span> <span class="text-primary font-medium">POST</span></div>
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Endpoint:</span> <span class="truncate w-32 text-right">/api/v1/query</span></div>
+<div class="mt-sm flex items-center gap-xs text-[10px] bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full w-max">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span> Active
+                        </div>
+</div>
+</div>
+<!-- Node: SSRF -->
+<div class="node-card bg-surface w-[280px] border border-outline-variant rounded-xl p-lg shadow-sm cursor-pointer left-[500px] top-[200px]" onclick="openConfig('SSRF Security Gateway')">
+<div class="flex items-center gap-sm border-b border-outline-variant pb-sm mb-sm">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">shield</span>
+</div>
+<div class="font-body-md font-medium text-on-surface">SSRF_VALIDATION_001</div>
+</div>
+<div class="space-y-xs font-code-sm text-code-sm text-on-surface-variant">
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Ruleset:</span> <span>Strict</span></div>
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">DNS Resolve:</span> <span>Internal Deny</span></div>
+<div class="mt-sm flex items-center gap-xs text-[10px] bg-surface-variant text-on-surface-variant px-2 py-0.5 rounded-full w-max">
+<span class="material-symbols-outlined text-[12px]">filter_alt</span> Filtering
+                        </div>
+</div>
+</div>
+<!-- Node: Probe -->
+<div class="node-card bg-surface w-[280px] border border-primary rounded-xl p-lg shadow-sm cursor-pointer left-[880px] top-[200px]" onclick="openConfig('Adversarial Probe Injector')">
+<div class="flex items-center gap-sm border-b border-outline-variant pb-sm mb-sm">
+<div class="w-8 h-8 rounded bg-primary-container text-on-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">bug_report</span>
+</div>
+<div class="font-body-md font-medium text-on-surface">Adversarial Probe Injector</div>
+</div>
+<div class="space-y-xs font-code-sm text-code-sm text-on-surface-variant">
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Suite:</span> <span>Prompt Inj + PII</span></div>
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Payloads:</span> <span class="text-secondary font-medium">1,240</span></div>
+<div class="mt-sm flex items-center gap-xs text-[10px] bg-surface-container-high text-primary px-2 py-0.5 rounded-full w-max border border-primary-fixed-dim">
+<span class="material-symbols-outlined text-[12px] animate-pulse">radar</span> Scanning...
+                        </div>
+</div>
+</div>
+<!-- Node: Evaluator -->
+<div class="node-card bg-surface w-[280px] border border-outline-variant rounded-xl p-lg shadow-sm cursor-pointer left-[1260px] top-[200px]" onclick="openConfig('Hybrid Evaluator')">
+<div class="flex items-center gap-sm border-b border-outline-variant pb-sm mb-sm">
+<div class="w-8 h-8 rounded bg-surface-container-low flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px]">psychology</span>
+</div>
+<div class="font-body-md font-medium text-on-surface">Hybrid Evaluator</div>
+</div>
+<div class="space-y-xs font-code-sm text-code-sm text-on-surface-variant">
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Model:</span> <span>GPT-4-Eval</span></div>
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Heuristics:</span> <span>Enabled</span></div>
+</div>
+</div>
+<!-- Node: Risk -->
+<div class="node-card bg-surface w-[280px] border border-outline-variant rounded-xl p-lg shadow-sm cursor-pointer left-[1640px] top-[200px]" onclick="openConfig('Risk Engine')">
+<div class="flex items-center gap-sm border-b border-outline-variant pb-sm mb-sm">
+<div class="w-8 h-8 rounded bg-tertiary-container text-on-tertiary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]">lock</span>
+</div>
+<div class="font-body-md font-medium text-on-surface">Risk Engine</div>
+</div>
+<div class="space-y-xs font-code-sm text-code-sm text-on-surface-variant">
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Threshold:</span> <span>High</span></div>
+<div class="flex justify-between"><span class="opacity-70 font-label-caps uppercase">Violations:</span> <span class="text-tertiary font-bold">3</span></div>
+</div>
+</div>
+</div>
+<!-- Zoom Controls -->
+<div class="absolute bottom-md left-md bg-surface border border-outline-variant rounded-md shadow-sm flex items-center p-1 z-20">
+<button class="p-1 hover:bg-surface-container rounded text-on-surface-variant"><span class="material-symbols-outlined text-[20px]">remove</span></button>
+<span class="text-code-sm font-code-sm px-2 text-on-surface-variant border-x border-outline-variant">100%</span>
+<button class="p-1 hover:bg-surface-container rounded text-on-surface-variant"><span class="material-symbols-outlined text-[20px]">add</span></button>
+</div>
+</div>
+<!-- Configuration Slide-over (Right Panel) -->
+<aside class="config-panel fixed top-16 right-0 bottom-12 w-[360px] bg-surface border-l border-outline-variant shadow-lg z-30 flex flex-col open" id="config-panel">
+<div class="flex justify-between items-center p-md border-b border-outline-variant bg-surface-container-lowest">
+<h2 class="font-headline-sm text-headline-sm font-semibold text-on-surface" id="config-title">Adversarial Probe Injector</h2>
+<button class="text-on-surface-variant hover:bg-surface-container p-1 rounded transition-colors" onclick="closeConfig()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="flex-1 overflow-y-auto p-md space-y-lg custom-scrollbar">
+<!-- Target Config Section (Hidden by default, shown based on selection) -->
+<div class="space-y-md hidden" id="section-target">
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Endpoint URL</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded px-sm py-2 text-body-sm font-body-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none" type="text" value="https://api.internal.corp/v1/query"/>
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">HTTP Method</label>
+<select class="w-full bg-surface-container-lowest border border-outline-variant rounded px-sm py-2 text-body-sm font-body-sm focus:border-primary outline-none">
+<option>GET</option>
+<option selected="">POST</option>
+<option>PUT</option>
+</select>
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">Request Body Template</label>
+<textarea class="w-full bg-[#1e293b] text-[#cbd5e1] font-code-sm text-code-sm border border-outline-variant rounded px-sm py-2 h-24 focus:border-primary outline-none resize-none">{"message": "{{PROMPT}}"}</textarea>
+</div>
+<div class="space-y-1">
+<label class="font-label-caps text-label-caps text-on-surface-variant uppercase">JSONPath Selector</label>
+<input class="w-full bg-surface-container-lowest border border-outline-variant rounded px-sm py-2 text-code-sm font-code-sm focus:border-primary outline-none" type="text" value="$.response.content"/>
+</div>
+</div>
+<!-- Probe Suite Section (Active by default) -->
+<div class="space-y-md" id="section-probe">
+<div>
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-sm uppercase">Probe Selection Suite</h3>
+<div class="space-y-2 bg-surface-container-lowest border border-outline-variant rounded-md p-sm">
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-body-sm group-hover:text-primary transition-colors">Direct Prompt Injection</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input checked="" class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-body-sm group-hover:text-primary transition-colors">PII Leakage Vectors</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-body-sm group-hover:text-primary transition-colors">Tool Auth Override</span>
+</label>
+<label class="flex items-center gap-sm cursor-pointer group">
+<input class="rounded border-outline-variant text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-body-sm group-hover:text-primary transition-colors">SSRF Defense Evasion</span>
+</label>
+</div>
+</div>
+</div>
+<!-- Risk Factors Section -->
+<div class="space-y-md border-t border-outline-variant pt-md" id="section-risk">
+<h3 class="font-label-caps text-label-caps text-on-surface-variant mb-sm uppercase">Environmental Risk Factors</h3>
+<div class="space-y-4">
+<!-- Slider 1 -->
+<div class="space-y-1">
+<div class="flex justify-between items-center">
+<label class="text-body-sm font-medium">Business Impact</label>
+<span class="text-[10px] font-label-caps text-tertiary bg-error-container px-1.5 rounded uppercase">High</span>
+</div>
+<input class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-tertiary" max="4" min="1" type="range" value="3"/>
+<div class="flex justify-between text-[10px] text-on-surface-variant font-code-sm">
+<span>Low</span><span>Med</span><span>High</span><span>Crit</span>
+</div>
+</div>
+<!-- Slider 2 -->
+<div class="space-y-1">
+<div class="flex justify-between items-center">
+<label class="text-body-sm font-medium">Asset Sensitivity</label>
+<span class="text-[10px] font-label-caps text-primary bg-primary-container/20 px-1.5 rounded uppercase">Elevated</span>
+</div>
+<input class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary" max="3" min="1" type="range" value="2"/>
+</div>
+</div>
+</div>
+</div>
+<div class="p-md border-t border-outline-variant bg-surface-container-lowest">
+<button class="w-full bg-surface-container border border-outline-variant text-on-surface font-body-sm font-medium py-2 rounded hover:bg-surface-container-high transition-colors">
+                    Save Configuration
+                </button>
+</div>
+</aside>
+<!-- Bottom Docked Terminal -->
+<div class="h-48 bg-[#0f172a] border-t border-outline-variant shrink-0 flex flex-col z-40 w-full md:w-[calc(100%-280px)] fixed bottom-12 right-0">
+<div class="flex items-center justify-between px-md py-1 border-b border-[#1e293b] bg-[#020617]">
+<div class="flex items-center gap-sm">
+<span class="material-symbols-outlined text-[14px] text-outline">terminal</span>
+<span class="font-code-sm text-code-sm text-outline">Runtime Execution Log</span>
+</div>
+<div class="flex gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-error/50"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-[#facc15]/50"></span>
+<span class="w-2.5 h-2.5 rounded-full bg-secondary-fixed/50"></span>
+</div>
+</div>
+<div class="flex-1 p-sm font-code-md text-code-md text-[#94a3b8] overflow-y-auto terminal-scroll space-y-1 bg-[#0f172a]">
+<div class="flex gap-sm">
+<span class="text-[#475569]">14:22:01.045</span>
+<span class="text-secondary-fixed">[INFO]</span>
+<span>Initializing Scan Pipeline ID: P-8829-A</span>
+</div>
+<div class="flex gap-sm">
+<span class="text-[#475569]">14:22:01.102</span>
+<span class="text-primary-fixed-dim">[HTTP]</span>
+<span>POST /api/v1/query - Payload: direct_injection_v2</span>
+</div>
+<div class="flex gap-sm">
+<span class="text-[#475569]">14:22:01.125</span>
+<span class="text-secondary-fixed">[RECV]</span>
+<span><span class="text-secondary-fixed-dim bg-secondary/20 px-1 rounded">200 OK</span> - Latency: 23ms</span>
+</div>
+<div class="flex gap-sm">
+<span class="text-[#475569]">14:22:01.130</span>
+<span class="text-primary-fixed-dim">[HTTP]</span>
+<span>POST /api/v1/query - Payload: ssrf_internal_aws_meta</span>
+</div>
+<div class="flex gap-sm">
+<span class="text-[#475569]">14:22:01.185</span>
+<span class="text-tertiary-fixed-dim">[RECV]</span>
+<span><span class="text-error bg-error/20 px-1 rounded">403 Forbidden</span> - WAF Blocked - Latency: 55ms</span>
+</div>
+<div class="flex gap-sm">
+<span class="text-[#475569]">14:22:01.200</span>
+<span class="text-[#facc15]">[WARN]</span>
+<span>Heuristics match indicating potential context window overflow.</span>
+</div>
+<div class="flex gap-sm items-center mt-2">
+<span class="text-secondary-fixed animate-pulse">_</span>
+</div>
+</div>
+</div>
+<!-- BottomNavBar (Mobile Only & Structural Anchor) -->
+<nav class="flex items-center px-lg z-40 bg-on-background dark:bg-surface-container-lowest border-t border-outline dark:border-outline-variant fixed bottom-0 right-0 w-full md:w-[calc(100%-280px)] h-12">
+<div class="bg-surface-container-highest/10 text-secondary-fixed font-code-sm text-code-sm flex items-center gap-xs px-3 py-1.5 rounded cursor-default">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+<span>Telemetry Terminal</span>
+</div>
+</nav>
+</main>
+<script>
+        // Simple interactions
+        function closeConfig() {
+            document.getElementById('config-panel').classList.remove('open');
+        }
+
+        function openConfig(title) {
+            document.getElementById('config-title').textContent = title;
+            document.getElementById('config-panel').classList.add('open');
+            
+            // Simple mock logic to show different sections based on node clicked
+            if(title === 'Target HTTP REST Agent') {
+                document.getElementById('section-target').classList.remove('hidden');
+                document.getElementById('section-probe').classList.add('hidden');
+            } else {
+                document.getElementById('section-target').classList.add('hidden');
+                document.getElementById('section-probe').classList.remove('hidden');
+            }
+        }
+        
+        // Basic panning logic for canvas (visual only for mockup)
+        let isDragging = false;
+        let startX, startY, translateX = -100, translateY = -50;
+        const container = document.getElementById('canvas-container');
+
+        container.addEventListener('mousedown', (e) => {
+            if(e.target === container || e.target.tagName === 'svg' || e.target.tagName === 'path') {
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            translateX = e.clientX - startX;
+            translateY = e.clientY - startY;
+            container.style.transform = `translate(${translateX}px, ${translateY}px)`;
+        });
+
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+    </script>
+</body></html>

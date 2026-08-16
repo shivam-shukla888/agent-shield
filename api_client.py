@@ -57,6 +57,15 @@ def check_backend_health(backend_url: str, timeout: float = 2.0) -> bool:
         return False
 
 
+def check_backend_readiness(backend_url: str, timeout: float = 2.0) -> bool:
+    try:
+        url = f"{backend_url.rstrip('/')}/health/ready"
+        resp = requests.get(url, timeout=timeout)
+        return resp.status_code == 200
+    except Exception:
+        return False
+
+
 def post_scan(backend_url: str, api_key: str, payload: Dict[str, Any], is_demo: bool = False) -> Optional[Dict[str, Any]]:
     if is_demo:
         time.sleep(0.4)
@@ -65,15 +74,18 @@ def post_scan(backend_url: str, api_key: str, payload: Dict[str, Any], is_demo: 
             {
                 "finding_id": "FIND_001",
                 "probe_id": payload.get("probes", {}).get("probe_ids", ["PROMPT_LEAK_001"])[0],
-                "severity": "HIGH",
-                "title": "System Prompt & Key Disclosure",
-                "description": "Agent exposed developer directives when tested with instruction override payload.",
+                "severity": "CRITICAL",
+                "title": "System Prompt & Developer Directive Extraction",
+                "description": "Agent disclosed developer system prompt and API tool keys when tested with instruction override sequence.",
+                "impact": "Attacker can map hidden agent directives and extract internal authorization credentials.",
+                "remediation": "Enforce deterministic out-of-band authorization checks outside the LLM context.",
             }
         ]
         return {
             "scan_id": scan_id,
             "status": "COMPLETED",
-            "risk_score": 75,
+            "risk_score": 78,
+            "target_name": payload.get("target", {}).get("target_name", "Target Agent"),
             "target": payload.get("target", {}),
             "findings": findings,
         }
@@ -119,10 +131,12 @@ def get_scan(backend_url: str, api_key: str, scan_id: str, is_demo: bool = False
 def get_report(backend_url: str, api_key: str, scan_id: str, fmt: str = "html", is_demo: bool = False) -> Optional[bytes]:
     if is_demo:
         if fmt == "json":
-            return json.dumps({"scan_id": scan_id, "demo_mode": True}).encode("utf-8")
+            return json.dumps({"scan_id": scan_id, "demo_mode": True, "status": "COMPLETED"}, indent=2).encode("utf-8")
         elif fmt == "pdf":
-            return b"%PDF-1.4 Demo PDF Report Content"
-        return f"<html><body><h1>Demo Report for {scan_id}</h1></body></html>".encode("utf-8")
+            return b"%PDF-1.4 Demo Security Evidence Report"
+        elif fmt == "markdown":
+            return f"# AgentShield Audit Report — {scan_id}\n\n**Status:** COMPLETED\n**Risk Score:** 78/100 (HIGH RISK)\n\n## Findings\n- **FIND_001**: System Prompt Disclosure (CRITICAL)".encode("utf-8")
+        return f"<!DOCTYPE html><html><body><h1>AgentShield Report: {scan_id}</h1><p>Risk Score: 78/100 (HIGH RISK)</p></body></html>".encode("utf-8")
 
     try:
         url = f"{backend_url.rstrip('/')}/api/v1/scans/{scan_id}/report?format={fmt}"
@@ -132,3 +146,4 @@ def get_report(backend_url: str, api_key: str, scan_id: str, fmt: str = "html", 
         return None
     except Exception:
         return None
+

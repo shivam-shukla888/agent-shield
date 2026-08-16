@@ -1,13 +1,14 @@
 """
 AgentShield v2 - Embedded HTML5/JS/Canvas Animation Components (components_3d.py)
 Uses streamlit.components.v1.html to render real interactive canvas graphics & animations.
+Light Theme Design System Integration
 """
 
 import streamlit as st
 import streamlit.components.v1 as components
 
 
-def render_hero_attack_graph(height: int = 240):
+def render_hero_attack_graph(height: int = 140):
     """
     Renders an HTML5 Canvas node-graph particle animation representing real-time attack probes.
     """
@@ -17,7 +18,7 @@ def render_hero_attack_graph(height: int = 240):
     <head>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { background: transparent; overflow: hidden; font-family: sans-serif; }
+            body { background: transparent; overflow: hidden; font-family: 'Inter', sans-serif; }
             canvas { display: block; width: 100%; height: 100%; }
         </style>
     </head>
@@ -35,11 +36,11 @@ def render_hero_attack_graph(height: int = 240):
             resize();
 
             const nodes = [
-                { x: 100, y: 120, label: "PROMPT_LEAK", color: "#4ECDC4", pulse: 0 },
-                { x: 300, y: 60,  label: "INSTRUCTION_OVERRIDE", color: "#FF6B35", pulse: 0 },
-                { x: 500, y: 150, label: "SSRF_DEFENSE", color: "#4ECDC4", pulse: 0 },
-                { x: 700, y: 70,  label: "EXCESSIVE_AGENCY", color: "#E23D5A", pulse: 0 },
-                { x: 900, y: 130, label: "PII_DISCLOSURE", color: "#4ECDC4", pulse: 0 }
+                { x: 100, y: 70, label: "PROMPT_LEAK_001", color: "#006c4a", pulse: 0 },
+                { x: 300, y: 35,  label: "INSTRUCTION_OVERRIDE", color: "#d97706", pulse: 0 },
+                { x: 500, y: 85, label: "SSRF_DEFENSE_GATEWAY", color: "#2563eb", pulse: 0 },
+                { x: 700, y: 40,  label: "EXCESSIVE_AGENCY", color: "#d52022", pulse: 0 },
+                { x: 900, y: 75, label: "PII_CREDENTIAL_CHECK", color: "#006c4a", pulse: 0 }
             ];
 
             let time = 0;
@@ -54,7 +55,7 @@ def render_hero_attack_graph(height: int = 240):
                     ctx.beginPath();
                     ctx.moveTo(n1.x, n1.y);
                     ctx.lineTo(n2.x, n2.y);
-                    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+                    ctx.strokeStyle = "rgba(195, 198, 215, 0.4)";
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
 
@@ -63,10 +64,10 @@ def render_hero_attack_graph(height: int = 240):
                     const px = n1.x + (n2.x - n1.x) * t;
                     const py = n1.y + (n2.y - n1.y) * t;
                     ctx.beginPath();
-                    ctx.arc(px, py, 3, 0, Math.PI * 2);
+                    ctx.arc(px, py, 4, 0, Math.PI * 2);
                     ctx.fillStyle = n1.color;
                     ctx.shadowColor = n1.color;
-                    ctx.shadowBlur = 10;
+                    ctx.shadowBlur = 6;
                     ctx.fill();
                     ctx.shadowBlur = 0;
                 }
@@ -74,17 +75,17 @@ def render_hero_attack_graph(height: int = 240):
                 // Draw Nodes
                 nodes.forEach((n, idx) => {
                     ctx.beginPath();
-                    ctx.arc(n.x, n.y, 8, 0, Math.PI * 2);
+                    ctx.arc(n.x, n.y, 7, 0, Math.PI * 2);
                     ctx.fillStyle = n.color;
                     ctx.shadowColor = n.color;
-                    ctx.shadowBlur = 15;
+                    ctx.shadowBlur = 8;
                     ctx.fill();
                     ctx.shadowBlur = 0;
 
                     // Label
-                    ctx.fillStyle = "#94A3B8";
-                    ctx.font = "11px 'Courier New', monospace";
-                    ctx.fillText(n.label, n.x - 40, n.y + 22);
+                    ctx.fillStyle = "#434655";
+                    ctx.font = "600 11px 'JetBrains Mono', monospace";
+                    ctx.fillText(n.label, n.x - 45, n.y + 22);
                 });
 
                 requestAnimationFrame(animate);
@@ -97,7 +98,7 @@ def render_hero_attack_graph(height: int = 240):
     components.html(html_code, height=height, scrolling=False)
 
 
-def render_radar_sweep(height: int = 220):
+def render_radar_sweep(height: int = 180):
     """
     Renders an animated SVG/CSS Radar Scanner representing active scan execution.
     """
@@ -108,20 +109,20 @@ def render_radar_sweep(height: int = 220):
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body { 
-                background: #0B0D12; 
+                background: transparent; 
                 display: flex; 
                 align-items: center; 
                 justify-content: center; 
                 height: 100vh;
-                font-family: monospace;
+                font-family: 'JetBrains Mono', monospace;
             }
             .radar-box {
                 position: relative;
-                width: 180px;
-                height: 180px;
+                width: 140px;
+                height: 140px;
                 border-radius: 50%;
-                border: 2px solid rgba(78, 205, 196, 0.3);
-                background: radial-gradient(circle, rgba(78, 205, 196, 0.05) 0%, transparent 70%);
+                border: 2px solid rgba(37, 99, 235, 0.3);
+                background: radial-gradient(circle, rgba(37, 99, 235, 0.06) 0%, transparent 70%);
                 overflow: hidden;
             }
             .radar-ring {
@@ -129,17 +130,17 @@ def render_radar_sweep(height: int = 220):
                 top: 50%; left: 50%;
                 transform: translate(-50%, -50%);
                 border-radius: 50%;
-                border: 1px dashed rgba(255, 255, 255, 0.1);
+                border: 1px dashed rgba(19, 27, 46, 0.15);
             }
-            .r1 { width: 120px; height: 120px; }
-            .r2 { width: 60px; height: 60px; }
+            .r1 { width: 95px; height: 95px; }
+            .r2 { width: 45px; height: 45px; }
 
             .sweep {
                 position: absolute;
                 top: 0; left: 0; width: 100%; height: 100%;
                 border-radius: 50%;
-                background: conic-gradient(from 0deg, rgba(226, 61, 90, 0.4) 0deg, transparent 60deg);
-                animation: spin 2s linear infinite;
+                background: conic-gradient(from 0deg, rgba(37, 99, 235, 0.4) 0deg, transparent 60deg);
+                animation: spin 1.8s linear infinite;
             }
 
             @keyframes spin {
@@ -149,9 +150,10 @@ def render_radar_sweep(height: int = 220):
 
             .label {
                 position: absolute;
-                bottom: 10px;
-                color: #4ECDC4;
-                font-size: 11px;
+                bottom: 8px;
+                color: #004ac6;
+                font-size: 10px;
+                font-weight: 700;
                 letter-spacing: 1px;
             }
         </style>
@@ -170,10 +172,10 @@ def render_radar_sweep(height: int = 220):
 
 def render_risk_score_gauge(score: int, height: int = 180):
     """
-    Renders an animated SVG radial gauge color-shifting from Safe Teal to Crimson.
+    Renders an animated SVG radial gauge color-shifting from Emerald to Crimson.
     """
     pct = max(0, min(100, score))
-    color = "#4ECDC4" if pct < 30 else "#FF6B35" if pct < 70 else "#E23D5A"
+    color = "#006c4a" if pct < 30 else "#d97706" if pct < 70 else "#d52022"
     dash_offset = 283 - (283 * pct / 100)
 
     html_code = f"""
@@ -189,15 +191,15 @@ def render_risk_score_gauge(score: int, height: int = 180):
                 align-items: center;
                 justify-content: center;
                 height: 100vh;
-                font-family: 'Sora', sans-serif;
+                font-family: 'Plus Jakarta Sans', sans-serif;
             }}
             .gauge-svg {{
-                width: 140px;
-                height: 140px;
+                width: 130px;
+                height: 130px;
             }}
             .gauge-bg {{
                 fill: none;
-                stroke: rgba(255, 255, 255, 0.08);
+                stroke: #e2e7ff;
                 stroke-width: 10;
             }}
             .gauge-fill {{
@@ -208,19 +210,21 @@ def render_risk_score_gauge(score: int, height: int = 180):
                 stroke-dasharray: 283;
                 stroke-dashoffset: {dash_offset};
                 transition: stroke-dashoffset 1s ease-in-out;
-                filter: drop-shadow(0px 0px 8px {color});
+                filter: drop-shadow(0px 1px 4px {color});
             }}
             .gauge-num {{
-                fill: #EDEDED;
+                fill: #131b2e;
                 font-size: 26px;
                 font-weight: 800;
+                font-family: 'JetBrains Mono', monospace;
                 text-anchor: middle;
                 dominant-baseline: central;
             }}
             .gauge-title {{
-                color: #94A3B8;
+                color: #434655;
                 font-size: 11px;
-                margin-top: 6px;
+                font-weight: 700;
+                margin-top: 4px;
                 text-transform: uppercase;
                 letter-spacing: 1px;
             }}
@@ -232,8 +236,9 @@ def render_risk_score_gauge(score: int, height: int = 180):
             <circle class="gauge-fill" cx="50" cy="50" r="45" transform="rotate(-90 50 50)" />
             <text class="gauge-num" x="50" y="50">{pct}</text>
         </svg>
-        <div class="gauge-title">Risk Index</div>
+        <div class="gauge-title">Risk Score Index</div>
     </body>
     </html>
     """
     components.html(html_code, height=height, scrolling=False)
+
