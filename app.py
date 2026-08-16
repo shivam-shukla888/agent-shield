@@ -92,16 +92,16 @@ with st.sidebar:
     is_ready = api_client.check_backend_readiness(st.session_state.backend_url)
 
     if st.session_state.demo_mode:
-        st.markdown("• **API Status:** `🟡 DEMO MODE` (Offline)")
-        st.markdown("• **Storage Status:** `MOCK` (InMemory)")
+        st.markdown('• **API Status:** <span class="pill-medium">🟡 DEMO MODE</span> (Offline)', unsafe_allow_html=True)
+        st.markdown('• **Storage Status:** <span class="pill-medium">MOCK</span> (InMemory)', unsafe_allow_html=True)
     elif is_online and is_ready:
-        st.markdown("• **API Status:** `🟢 ONLINE` (HTTP 200)")
-        st.markdown("• **Storage Status:** `🟢 READY` (SQL/Memory)")
+        st.markdown('• **API Status:** <span class="pill-safe">🟢 ONLINE</span> (HTTP 200)', unsafe_allow_html=True)
+        st.markdown('• **Storage Status:** <span class="pill-safe">🟢 READY</span> (SQL/Memory)', unsafe_allow_html=True)
     elif is_online:
-        st.markdown("• **API Status:** `🟢 ONLINE` (HTTP 200)")
-        st.markdown("• **Storage Status:** `🟡 DEGRADED` (DB Error)")
+        st.markdown('• **API Status:** <span class="pill-safe">🟢 ONLINE</span> (HTTP 200)', unsafe_allow_html=True)
+        st.markdown('• **Storage Status:** <span class="pill-high">🟡 DEGRADED</span> (DB Error)', unsafe_allow_html=True)
     else:
-        st.markdown("• **API Status:** `🔴 UNREACHABLE` (Offline)")
+        st.markdown('• **API Status:** <span class="pill-critical">🔴 UNREACHABLE</span> (Offline)', unsafe_allow_html=True)
 
     st.divider()
     st.markdown("### 📚 Quick Documentation")

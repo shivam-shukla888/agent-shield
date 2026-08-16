@@ -178,11 +178,31 @@ GLOBAL_CSS = f"""
         --radius-full: {THEME["rounded"]["full"]};
     }}
 
-    /* Overall App Background Override */
+    /* Overall App Background & Header Override */
     .stApp {{
         background-color: var(--bg-canvas) !important;
         color: var(--text-on-surface) !important;
         font-family: var(--font-body) !important;
+    }}
+
+    header[data-testid="stHeader"] {{
+        background-color: var(--bg-canvas) !important;
+        color: var(--text-on-surface) !important;
+    }}
+
+    .main .block-container {{
+        padding-top: 2rem !important;
+    }}
+
+    /* Streamlit Inline Code Blocks Override (Fixes solid black status badges) */
+    code, pre, .mono-code, div[data-testid="stMarkdownContainer"] code, span[data-baseweb="tag"] {{
+        font-family: var(--font-code) !important;
+        background-color: var(--bg-container-low) !important;
+        color: var(--primary-blue) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: var(--radius-sm) !important;
+        padding: 0.15rem 0.4rem !important;
+        font-size: 0.85rem !important;
     }}
 
     /* Header Bar & Top Nav */
@@ -204,11 +224,6 @@ GLOBAL_CSS = f"""
         letter-spacing: -0.01em !important;
         color: var(--text-on-surface) !important;
         font-weight: 600 !important;
-    }}
-
-    /* Monospace formatting strictly enforced for log, JSON, IP, code, and IDs */
-    code, pre, .mono-code, div[data-testid="stCodeBlock"] * {{
-        font-family: var(--font-code) !important;
     }}
 
     /* Custom Scrollbar */
