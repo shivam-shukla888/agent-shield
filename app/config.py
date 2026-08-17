@@ -159,8 +159,16 @@ class AppConfig(BaseModel):
 
         llm_endpoint = os.getenv("AGENTSHIELD_LLM_ENDPOINT") or None
 
-        raw_allowed = os.getenv("AGENTSHIELD_ALLOWED_TARGET_DOMAINS") or ""
-        allowed_target_domains = [d.strip().lower() for d in raw_allowed.split(",") if d.strip()]
+        raw_allowed = os.getenv("AGENTSHIELD_ALLOWED_TARGET_DOMAINS")
+        if raw_allowed is not None and raw_allowed.strip():
+            allowed_target_domains = [d.strip().lower() for d in raw_allowed.split(",") if d.strip()]
+        else:
+            demo_guardrails = os.getenv("AGENTSHIELD_DEMO_GUARDRAILS", "false").lower() in ("true", "1", "yes")
+            if demo_guardrails:
+                allowed_target_domains = ["localhost", "127.0.0.1", "testagent.local", "test_target"]
+            else:
+                allowed_target_domains = []
+
 
         return cls(
             host=host,

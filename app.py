@@ -104,10 +104,10 @@ with st.sidebar:
         st.markdown('• **API Status:** <span class="pill-critical">🔴 UNREACHABLE</span> (Offline)', unsafe_allow_html=True)
 
     st.divider()
-    st.markdown("### 📚 Quick Documentation")
+    st.markdown("### 📚 Quick Links & Source")
+    st.markdown("[![GitHub Repository](https://img.shields.io/badge/GitHub-AgentShield-004AC6?style=for-the-badge&logo=github)](https://github.com/shivam-shukla888/agent-shield)")
     st.markdown("• [FastAPI Swagger Docs](http://localhost:8000/docs)")
     st.markdown("• [Standalone Dashboard](http://localhost:8000/dashboard)")
-    st.markdown("• [GitHub Repository](https://github.com/shivam-shukla888/agent-shield)")
 
     st.markdown(
         '<div class="footer-credit">Built by '
@@ -122,7 +122,7 @@ with st.sidebar:
 components_3d.render_hero_attack_graph(height=140)
 
 st.markdown("""
-<div style="margin-top: -10px; margin-bottom: 16px;">
+<div style="margin-top: -10px; margin-bottom: 12px;">
     <h1 style="font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; color: #131b2e;">
         🛡️ AgentShield Platform
     </h1>
@@ -132,12 +132,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+st.info(
+    "ℹ️ **Public Demo Sandbox**: AgentShield evaluates security controls against a sandboxed test agent "
+    "(`http://localhost:8000/chat`). Arbitrary third-party target URLs are restricted for public safety.",
+    icon="🛡️"
+)
+
 # Connection Status Banner
 c_status1, c_status2 = st.columns([3, 1])
 with c_status1:
     if st.session_state.demo_mode:
         st.markdown('<span class="pill-medium">🟡 DEMO MODE — Offline Mock Scan Data Active</span>', unsafe_allow_html=True)
     elif is_online:
+
         st.markdown('<span class="pill-safe">🟢 CONNECTED — AgentShield API Online (v1.0.0)</span>', unsafe_allow_html=True)
     else:
         st.markdown('<span class="pill-critical"><span class="pulse-dot"></span> BACKEND UNREACHABLE — Check URL in sidebar or enable Demo Mode</span>', unsafe_allow_html=True)

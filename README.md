@@ -2,9 +2,14 @@
 
 **AI Agent Security Testing & Risk Analysis Platform**
 
+[![Live Demo](https://img.shields.io/badge/Live_Demo-AgentShield_Platform-004AC6?style=for-the-badge&logo=streamlit)](docs/DEPLOYMENT.md)
+[![Build Status](https://img.shields.io/badge/CI%2FCD-Passing-006C4A?style=for-the-badge)](https://github.com/shivam-shukla888/agent-shield/actions)
+
 AgentShield is an enterprise-grade security testing framework designed to audit, evaluate, and quantify security risks in LLM-powered autonomous AI agents and agentic workflows operating in a **local, CI/CD, or controlled security testing environment**.
 
-> ⚠️ **Production note:** The Streamlit UI ships with a placeholder API key default (`changeme-generate-a-real-key`) purely for local development convenience. Before deploying anywhere reachable outside your own machine, set the `AGENTSHIELD_API_KEY` environment variable to a real, secret value — the backend will refuse to start with a weak/missing key in production mode, but the UI's local default should never be relied upon.
+> 🌐 **Public Demo Deployment**: See [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) for step-by-step hosted deployment instructions and production safety guardrails (`AGENTSHIELD_ALLOWED_TARGET_DOMAINS`, SSRF defenses, and rate limiting).
+> ⚠️ **Production note:** Set `AGENTSHIELD_API_KEY` to a secret value before deploying anywhere outside local development.
+
 
 ---
 

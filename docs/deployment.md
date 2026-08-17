@@ -1,141 +1,140 @@
-# AgentShield — Deployment Guide
+# AgentShield 🛡️ — Production & Public Demo Deployment Specification
 
-## Architecture Overview
+**Document Version:** 1.0.0  
+**Date:** August 18, 2026  
+**Target Repository:** `github.com/shivam-shukla888/agent-shield`
+
+---
+
+## 1. Deployment Architecture Recommendation
+
+For public demo exposure with zero-friction setup and strong security isolation, AgentShield recommends a **Decoupled Hosted Architecture**:
 
 ```
-Developer
- ↓
-Git (push / PR)
- ↓
-CI Pipeline (.github/workflows/ci.yml)
- ├── Python 3.11/3.12 Test Matrix
- ├── Full pytest Suite
- ├── Security Tests
- ├── Secret Leak Scan
- └── Docker Build Validation
- ↓
-Release Artifact (Docker Image)
- ↓
-Deployment (docker compose up -d)
- ├── agentshield (FastAPI + Uvicorn)
- └── postgres (PostgreSQL 16)
++------------------------------------+          +------------------------------------+
+|  Frontend Workstation (Public)     |          |  Backend API & Engine (Hosted)     |
+|                                    |          |                                    |
+|  Streamlit Community Cloud / App   |  REST    |  Render / Railway / HF Space       |
+|  (streamlit_app.py / app.py)       | -------> |  FastAPI ASGI Container            |
+|  - Renders UI & Visualizations     |  HTTPS   |  - SSRF Security Boundary          |
+|  - Reads BACKEND_URL from Secrets  |          |  - DeterministicEvaluator Engine   |
++------------------------------------+          +------------------------------------+
 ```
 
-## Environment Separation
+### Recommendation Rationale
+1. **Lowest Setup Friction**: Streamlit Community Cloud hosts the UI for free directly from GitHub. Render / Railway hosts the production FastAPI container using the root [`Dockerfile`](../Dockerfile) with zero infrastructure maintenance.
+2. **Security Isolation**: The backend container enforces server-side target domain allowlisting (`AGENTSHIELD_ALLOWED_TARGET_DOMAINS`), SSRF IP blocklists, and per-IP rate limiting before any outbound HTTP request is attempted.
+3. **Stateless Operations**: Uses in-memory scan repositories by default with optional PostgreSQL persistence (`DATABASE_URL`).
 
-### Development
+---
 
+## 2. Environment Variables & Configuration Matrix
+
+| Variable Name | Required? | Default Value | Description / Public Demo Guardrail |
+| :--- | :---: | :--- | :--- |
+| `AGENTSHIELD_API_KEY` | **Yes** | `changeme-generate-a-real-key` | Master API key required in `X-API-Key` or `Authorization: Bearer` header. |
+| `AGENTSHIELD_ALLOWED_TARGET_DOMAINS` | **Yes (Demo)** | `localhost,127.0.0.1,testagent.local,test_target` | Comma-separated allowed target hostnames. Rejects unlisted target URLs with HTTP 400. |
+| `AGENTSHIELD_DEMO_GUARDRAILS` | Optional | `true` | Enables safe demo defaults (pre-populated target allowlist, low scan timeout). |
+| `AGENTSHIELD_RATE_LIMIT_RPM` | Optional | `30` | Sliding-window requests per minute per IP / API key. Returns HTTP 429 when exceeded. |
+| `BACKEND_URL` | UI Only | `http://localhost:8000` | Public URL of hosted FastAPI backend service. |
+| `APP_HOST` | Container | `0.0.0.0` | Container bind address. |
+| `APP_PORT` | Container | `8000` | Container HTTP port. |
+| `LOG_LEVEL` | Optional | `INFO` | Structured JSON log verbosity (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
+
+---
+
+## 3. Container Build & Local Execution
+
+### Build Container Image
 ```bash
-# Local development — no Docker required
-python -m venv .venv
-source .venv/bin/activate  # or .venv\Scripts\Activate.ps1 on Windows
-pip install -e .[dev]
-uvicorn app.main:app --reload
-pytest
+docker build -t agentshield:latest .
 ```
 
-- Uses in-memory repository (no PostgreSQL required)
-- Uses `fake` LLM provider (no API keys required)
-- No API key authentication enforced by default
-
-### Test (CI)
-
+### Run Container (Production Mode)
 ```bash
-# CI pipeline — runs automatically on push/PR
-# See .github/workflows/ci.yml
-pytest -v --tb=short
+docker run -d \
+  --name agentshield-app \
+  -p 8000:8000 \
+  -e AGENTSHIELD_API_KEY="your-secure-api-key-here" \
+  -e AGENTSHIELD_ALLOWED_TARGET_DOMAINS="localhost,127.0.0.1,testagent.local" \
+  -e AGENTSHIELD_DEMO_GUARDRAILS="true" \
+  -e AGENTSHIELD_RATE_LIMIT_RPM="30" \
+  agentshield:latest
 ```
 
-- Uses in-memory repository
-- Uses `fake` LLM provider
-- All tests are offline — no external API calls
-- Docker build validated but no production database required
-
-### Production
-
+### Run Container Stack via Docker Compose
 ```bash
-# Production deployment via Docker Compose
 cp .env.example .env
-# Edit .env with real values
 docker compose up -d
 ```
 
-- PostgreSQL database required (`DATABASE_URL`)
-- API key required (`AGENTSHIELD_API_KEY`)
-- TLS termination via reverse proxy recommended
-- Structured JSON logs to stdout
+---
 
-## Quick Start
+## 4. Health Check Endpoints
 
-### 1. Clone and Configure
+AgentShield provides explicit container health check endpoints:
 
-```bash
-git clone https://github.com/shivam-shukla888/agent-shield.git
-cd agent-shield
-cp .env.example .env
+### Liveness Probe (`GET /health/live`)
+- **URL**: `http://localhost:8000/health/live`
+- **Response**: `HTTP 200 OK`
+```json
+{
+  "status": "live",
+  "timestamp": "2026-08-18T00:00:00.000000+00:00"
+}
 ```
 
-Edit `.env` with production values:
-- Generate API key: `python -c "import secrets; print(secrets.token_urlsafe(32))"`
-- Set `DATABASE_URL` to your PostgreSQL instance
-- Configure LLM provider if needed
-
-### 2. Build and Deploy
-
-```bash
-docker compose up -d
+### Readiness Probe (`GET /health/ready`)
+- **URL**: `http://localhost:8000/health/ready`
+- **Response**: `HTTP 200 OK`
+```json
+{
+  "status": "ready",
+  "timestamp": "2026-08-18T00:00:00.000000+00:00",
+  "version": "1.0.0"
+}
 ```
 
-### 3. Verify
+---
 
-```bash
-# Liveness
-curl http://localhost:8000/health
+## 5. Hosted Public Demo Step-by-Step Setup
 
-# Readiness
-curl http://localhost:8000/health/ready
+### Step 1: Deploy Backend Container to Render / Railway
+1. Connect GitHub repository `shivam-shukla888/agent-shield` to [Render.com](https://render.com).
+2. Create **Web Service** using `Dockerfile`.
+3. Configure Environment Variables:
+   - `AGENTSHIELD_API_KEY` = `<generated-random-secret>`
+   - `AGENTSHIELD_ALLOWED_TARGET_DOMAINS` = `localhost,127.0.0.1,testagent.local,test_target`
+   - `AGENTSHIELD_DEMO_GUARDRAILS` = `true`
+   - `AGENTSHIELD_RATE_LIMIT_RPM` = `30`
+4. Copy the live service URL: `https://agentshield-api.onrender.com`.
 
-# Logs
-docker compose logs -f agentshield
-```
+### Step 2: Deploy Streamlit UI to Streamlit Community Cloud
+1. Go to [share.streamlit.io](https://share.streamlit.io/).
+2. Click **New App** -> Select repository `shivam-shukla888/agent-shield` (`main` branch).
+3. Main file path: `streamlit_app.py`.
+4. Under **App Settings -> Secrets**, add:
+   ```toml
+   BACKEND_URL = "https://agentshield-api.onrender.com"
+   API_KEY = "<generated-random-secret>"
+   IS_DEMO = false
+   ```
+5. Deploy. The Streamlit app will launch with a public live URL.
 
-## Docker Image
+---
 
-The production Docker image:
-- Base: `python:3.11-slim`
-- Non-root user: `agentshield` (UID 1000)
-- ASGI server: Uvicorn
-- No secrets baked in
-- Minimal OS packages (only `curl` for health checks)
+## 6. Hosted Security Guardrails & SSRF Verification
 
-## Database
+To ensure public safety when AgentShield is hosted on a public domain:
 
-PostgreSQL schema is initialized automatically on first startup via `init_db()`.
-
-- Schema creation is idempotent (safe to restart)
-- No destructive migrations
-- Scan history is persisted in PostgreSQL
-
-## Configuration Validation
-
-On startup, `AppConfig.from_env()` validates:
-- Port range (1..65535)
-- Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- Rate limit (positive integer)
-- LLM timeout (0.0 < timeout ≤ 300.0)
-- Database URL scheme (postgresql://, postgres://, sqlite://)
-- Cloud LLM providers require API key
-
-Invalid configuration causes immediate startup failure with sanitized error messages (no secret leakage).
-
-## Security
-
-- API endpoints require `X-API-Key` header
-- Rate limiting on scan submission endpoints
-- SSRF protection on outbound target requests
-- Security response headers on all responses
-- Secrets wrapped in `SecretStr` — never logged or printed
-- Non-root container user
-- No privileged mode
-
-See [production-checklist.md](./production-checklist.md) for full checklist.
+1. **Domain Allowlist Rejection**:
+   Attempting a scan against an unlisted domain (`http://malicious.external.com`) returns `HTTP 400 Bad Request`:
+   ```json
+   {
+     "detail": "Target domain 'malicious.external.com' is not permitted by AGENTSHIELD_ALLOWED_TARGET_DOMAINS allowlist"
+   }
+   ```
+2. **SSRF Metadata Block**:
+   Attempting a scan against AWS metadata (`http://169.254.169.254/latest/meta-data`) returns `HTTP 400 Bad Request` from the SSRF protection engine.
+3. **Secret Non-Disclosure**:
+   API keys and environment secrets are never returned in scan responses, audit logs, or Streamlit DOM elements.
