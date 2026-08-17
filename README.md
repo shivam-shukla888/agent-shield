@@ -184,22 +184,23 @@ The initial release focuses on establishing a clean **Modular Monolith** archite
    pip install fastapi uvicorn pydantic httpx pytest
    ```
 
-4. **Run the API**:
+ 4. **Run FastAPI Backend**:
    ```bash
-   uvicorn app.main:app --reload
+   # Windows PowerShell / CMD (using project virtual environment)
+   .\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --port 8000
    ```
-   The API will be available at `http://127.0.0.1:8000`. You can check the health status at `http://127.0.0.1:8000/health`.
+   The API will be available at `http://127.0.0.1:8000`. You can check the health status at `http://127.0.0.1:8000/health` and the Web Dashboard at `http://127.0.0.1:8000/dashboard`.
 
-5. **Run Tests**:
+ 5. **Run Tests**:
    ```bash
-   pytest
+   .\.venv\Scripts\python.exe -m pytest tests/ -q
    ```
 
-6. **Run Streamlit Security Dashboard**:
+ 6. **Run Streamlit Security Workstation**:
    ```bash
-   streamlit run streamlit_app.py
+   .\.venv\Scripts\python.exe -m streamlit run app.py
    ```
-   The Streamlit client dashboard will launch at `http://localhost:8501`.
+   The Streamlit client workstation will launch at `http://localhost:8501`.
 
 ---
 
