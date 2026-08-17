@@ -31,7 +31,7 @@ def default_dns_resolver(hostname: str) -> List[str]:
     clean_host = hostname.lower().rstrip(".")
     try:
         addr_info = socket.getaddrinfo(clean_host, None)
-        ips = list(dict.fromkeys(info[4][0] for info in addr_info if info[4]))
+        ips = list(dict.fromkeys(str(info[4][0]) for info in addr_info if info[4]))
         if ips:
             return ips
     except Exception:

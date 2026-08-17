@@ -90,24 +90,24 @@ flowchart TD
         SO["Scan Orchestrator (Lifecycle & Execution Pipeline)"]
 
         subgraph Preparation ["Stage 1: Preparation & Threat Modeling"]
-            DISC["Discovery Engine (Capability & Tool Profiling)"]
-            TM["Threat Model Generator (Attack Surface Mapping)"]
+            TM["Threat Model Generator (threat_model.py)"]
         end
 
         subgraph Execution ["Stage 2: Test Execution & Interception"]
             AE["Attack Engine (Payload Selection & Mutators)"]
             TA["Target Adapter Abstraction Layer"]
             SSRF["SSRF Security Boundary (ssrf.py)"]
-            OBS["Observation & Trace Collector"]
+            OBS["AgentShield OTel Trace Collector (tracing.py)"]
         end
 
         subgraph Analysis ["Stage 3: Evaluation & Risk Scoring"]
-            DE["Detection Engine (Version-Controlled Rules)"]
-            JUDGE["LLM Judge (Semantic Rubric Evaluation)"]
+            DE["Detection Engine (Deterministic Evaluator)"]
+            JUDGE["LLM Judge (Production / Ollama / Fake Provider)"]
             FE["Finding Engine (Evidence & Policy Violation Check)"]
-            APE["Attack Path Engine (Vulnerability Chaining)"]
+            APE["Attack Path Engine (attack_path.py)"]
             RE["Risk Engine (Quantitative Scoring)"]
         end
+
 
         subgraph Reporting ["Stage 4: Output & Feedback"]
             REP["Report & Remediation Generator"]
@@ -298,9 +298,10 @@ For the Week 1 MVP, all security test probes, detection rules, and evaluation ru
 The following decisions remain intentionally **unfinalized** at this architectural stage:
 
 > [!IMPORTANT]
-> **Open Decision 1: Default Target Response Parsing Fallback**
-> When targeting a generic HTTP agent whose response schema is undeclared, should `GenericHTTPAdapter` attempt automatic JSON key extraction (e.g., checking `"response"`, `"output"`, `"message"`, `"text"`) or strictly require explicit JSONPath mapping configuration?
+> **Open Decision 1: Default Target Response Parsing Fallback (RESOLVED)**
+> `GenericHTTPAdapter` implements auto-detection for undeclared response schemas (checking standard keys `"response"`, `"answer"`, `"output"`, `"text"`, `"message"`, `"content"`, `"result"`, and nested structures like `choices[0].message.content`). If an explicit JSONPath/dot-notation configuration (`response_path`) is provided in `TargetConfig`, `GenericHTTPAdapter` uses `response_path` as a primary or fallback extraction route.
 
 > [!IMPORTANT]
-> **Open Decision 2: LLM Judge Provider Configuration**
-> Should the default LLM Judge rely on cloud LLM APIs (e.g., Groq / Claude 3.5) for high accuracy, or support local small models (e.g., Ollama / Llama 3 8B) for zero-data-leakage enterprise environments?
+> **Open Decision 2: LLM Judge Provider Configuration (RESOLVED)**
+> The LLM Judge provider is pluggable via configuration (`AGENTSHIELD_LLM_PROVIDER`). It supports both cloud LLM REST APIs (`cloud`, `openai`, `production`) for high-accuracy evaluation and local zero-data-leakage models via Ollama (`ollama`). The active provider is selected via config flags without hardcoding a single vendor.
+

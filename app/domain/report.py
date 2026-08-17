@@ -13,7 +13,8 @@ ARCHITECTURAL DIRECTIVES:
 6. Does NOT include CVSS metrics.
 """
 
-from datetime import datetime, timezone
+from datetime import datetime
+
 from enum import StrEnum
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, ConfigDict, Field, field_validator

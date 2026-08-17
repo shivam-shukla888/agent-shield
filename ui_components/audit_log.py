@@ -2,11 +2,11 @@
 AgentShield UI Components — Audit Log & Security Investigation Module (ui_components/audit_log.py)
 """
 
-from typing import Any, Dict, List
 import pandas as pd
 import streamlit as st
 import api_client
 import components_3d
+
 
 
 def render_audit_log_tab(backend_url: str, api_key: str, is_demo: bool):
@@ -17,12 +17,17 @@ def render_audit_log_tab(backend_url: str, api_key: str, is_demo: bool):
     st.caption("Search historical scan runs, investigate vulnerability traces, and export sanitized evidence reports.")
 
     scans = api_client.list_scans(backend_url, api_key, is_demo)
+    if scans is None:
+        st.error("⚠️ Unable to connect to AgentShield backend API. Verify backend URL and API Key in sidebar configuration.")
+        return
+
     if not scans:
         st.info("No security scans recorded yet. Run your first audit from the Scan Studio tab.")
         if st.button("Run First Security Scan", type="primary"):
             st.session_state.active_tab = 1
             st.rerun()
         return
+
 
     # SEARCH & MULTI-LEVEL FILTERS
     fl_1, fl_2, fl_3 = st.columns([2, 1, 1])

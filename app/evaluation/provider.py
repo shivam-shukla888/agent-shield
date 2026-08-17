@@ -7,7 +7,7 @@ This module defines:
 """
 
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional
+from typing import Callable, Dict, List, Optional
 
 
 class LLMProvider(ABC):
@@ -55,7 +55,8 @@ class FakeLLMProvider(LLMProvider):
         self.response_map = response_map or {}
         self.exception_to_raise = exception_to_raise
         self.custom_handler = custom_handler
-        self.call_history = []
+        self.call_history: List[Dict[str, Optional[str]]] = []
+
 
     def generate(self, prompt: str, system_prompt: Optional[str] = None) -> str:
         """

@@ -12,7 +12,8 @@ SECURITY & ARCHITECTURAL DIRECTIVES:
 """
 
 import os
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
+
 from pydantic import BaseModel, Field, SecretStr, field_validator, model_validator
 
 
@@ -40,6 +41,12 @@ class AppConfig(BaseModel):
     llm_model: Optional[str] = Field(default=None, description="LLM provider model identifier")
     llm_timeout: float = Field(default=30.0, description="LLM request timeout in seconds")
     llm_endpoint: Optional[str] = Field(default=None, description="Custom LLM provider HTTP API endpoint")
+
+    allowed_target_domains: List[str] = Field(
+        default_factory=list,
+        description="Allowed target domain hostnames for security scanning (empty = no restriction)",
+    )
+
 
     @field_validator("host")
     @classmethod
@@ -152,6 +159,9 @@ class AppConfig(BaseModel):
 
         llm_endpoint = os.getenv("AGENTSHIELD_LLM_ENDPOINT") or None
 
+        raw_allowed = os.getenv("AGENTSHIELD_ALLOWED_TARGET_DOMAINS") or ""
+        allowed_target_domains = [d.strip().lower() for d in raw_allowed.split(",") if d.strip()]
+
         return cls(
             host=host,
             port=port,
@@ -164,6 +174,7 @@ class AppConfig(BaseModel):
             llm_model=llm_model,
             llm_timeout=llm_timeout,
             llm_endpoint=llm_endpoint,
+            allowed_target_domains=allowed_target_domains,
         )
 
     def safe_dict(self) -> Dict[str, Any]:
@@ -183,4 +194,6 @@ class AppConfig(BaseModel):
             "llm_model": self.llm_model,
             "llm_timeout": self.llm_timeout,
             "llm_endpoint": self.llm_endpoint,
+            "allowed_target_domains": self.allowed_target_domains,
         }
+

@@ -4,8 +4,8 @@ Uses streamlit.components.v1.html to render real interactive canvas graphics & a
 Light Theme Design System Integration
 """
 
-import streamlit as st
 import streamlit.components.v1 as components
+
 
 
 def render_hero_attack_graph(height: int = 140):

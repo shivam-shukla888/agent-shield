@@ -3,10 +3,10 @@ AgentShield UI Components — Scan Studio Workspace Module (ui_components/scan_s
 """
 
 import time
-from typing import Any, Dict, List, Optional
 import streamlit as st
 import api_client
 import components_3d
+
 
 
 PROBE_CATALOG_GROUPS = {
@@ -214,9 +214,45 @@ def render_scan_studio_tab(backend_url: str, api_key: str, is_demo: bool):
             result = api_client.post_scan(backend_url, api_key, payload, is_demo)
             timeline_placeholder.empty()
 
-            if result:
-                st.toast("Scan Execution Completed", icon="✅")
+            if result and "error" in result:
+                st.error(f"🛑 Scan Submission Rejected: {result['error']}")
+            elif result:
                 scan_id = result.get("scan_id", "SCAN_N/A")
+
+                # REAL-TIME PROGRESS STATUS POLLING (Task 4)
+                if not is_demo and scan_id != "SCAN_N/A":
+                    progress_bar = st.progress(0.0)
+                    status_text = st.empty()
+                    poll_count = 0
+                    max_polls = 30
+                    total_probes_count = max(len(selected_probes), 1)
+
+                    while poll_count < max_polls:
+                        poll_res = api_client.get_scan(backend_url, api_key, scan_id, is_demo)
+                        if poll_res:
+                            curr_status = poll_res.get("status", "COMPLETED")
+                            summary = poll_res.get("summary", {})
+                            completed = (
+                                summary.get("completed_executions", 0)
+                                if isinstance(summary, dict)
+                                else 0
+                            )
+                            pct = min(completed / total_probes_count, 1.0)
+                            progress_bar.progress(pct)
+                            status_text.caption(
+                                f"⏳ Polling Scan Progress: {completed} of {total_probes_count} probes evaluated (Status: {curr_status})"
+                            )
+
+                            if curr_status in ("COMPLETED", "FAILED"):
+                                result = poll_res
+                                break
+                        time.sleep(0.5)
+                        poll_count += 1
+
+                    progress_bar.empty()
+                    status_text.empty()
+
+                st.toast("Scan Execution Completed", icon="✅")
                 st.success(f"Audit completed for **{target_name}** — Scan ID: `{scan_id}`")
 
                 # RESULTS VIEW
@@ -227,6 +263,7 @@ def render_scan_studio_tab(backend_url: str, api_key: str, is_demo: bool):
                         r_list = result.get("risk_assessments", [])
                         score = r_list[0].get("risk_score") if r_list else 0
                     components_3d.render_risk_score_gauge(int(score or 0), height=170)
+
 
                 with r_col2:
                     findings = result.get("findings", [])

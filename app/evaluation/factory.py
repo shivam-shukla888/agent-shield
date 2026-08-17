@@ -40,9 +40,13 @@ def build_llm_provider(config: Optional[LLMProviderConfig] = None) -> LLMProvide
     if provider_type == "fake":
         return FakeLLMProvider()
 
-    if provider_type in ("production", "openai"):
+    if provider_type in ("production", "openai", "cloud"):
         if config.api_key is None or not config.api_key.get_secret_value().strip():
             raise LLMProviderError("Missing required API key for production LLM provider configuration")
         return ProductionLLMProvider(config=config)
 
+    if provider_type == "ollama":
+        return ProductionLLMProvider(config=config)
+
     raise LLMProviderError(f"Unsupported LLM provider_type '{config.provider_type}'")
+

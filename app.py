@@ -3,8 +3,8 @@ AgentShield — Streamlit Enterprise Security Product UI (app.py)
 AI Agent Vulnerability Assessment & Quantitative Risk Analysis Platform
 """
 
-import pandas as pd
 import streamlit as st
+
 
 import api_client
 import components_3d
@@ -172,4 +172,5 @@ with tab_audit:
     render_audit_log_tab(st.session_state.backend_url, st.session_state.api_key, st.session_state.demo_mode)
 
 with tab_sandbox:
-    render_sandbox_tab()
+    render_sandbox_tab(st.session_state.backend_url, st.session_state.api_key, st.session_state.demo_mode)
+

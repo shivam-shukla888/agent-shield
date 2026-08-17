@@ -26,11 +26,11 @@ from app.domain.risk import (
     BlastRadiusLevel,
     ExploitabilityLevel,
     ImpactLevel,
-    RiskAssessment,
     RiskFactors,
     RiskLevel,
     ToolPrivilege,
 )
+
 from app.domain.scan import ScanResult, ScanStatus
 from app.domain.target import TargetConfig
 
@@ -374,3 +374,21 @@ def scan_result_to_response(scan_result: ScanResult) -> ScanResponse:
         findings=finding_resps,
         risk_assessments=risk_resps,
     )
+
+
+class EvaluatePayloadRequest(BaseModel):
+    """Public DTO representing single prompt payload evaluation request."""
+
+    payload: str = Field(..., max_length=10000, description="Prompt payload text to evaluate")
+
+
+class EvaluatePayloadResponse(BaseModel):
+    """Public DTO representing single prompt payload evaluation verdict."""
+
+    is_violation: bool = Field(..., description="True if payload violated security boundary")
+    rule_id: Optional[str] = Field(None, description="Matched evaluator rule ID")
+    description: Optional[str] = Field(None, description="Rule description summary")
+    severity: Optional[str] = Field(None, description="Violation severity level")
+    evidence: Optional[str] = Field(None, description="Extracted evidence snippet")
+    remediation: Optional[str] = Field(None, description="Recommended remediation code")
+

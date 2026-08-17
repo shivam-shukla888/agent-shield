@@ -19,16 +19,16 @@ ARCHITECTURAL DIRECTIVES:
 from datetime import datetime, timezone
 import html
 import json
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from fpdf import FPDF
 
-from app.domain.finding import Finding
-from app.domain.report import ReportFinding, ReportFormat, ReportRisk, SecurityReport
-from app.domain.risk import RiskAssessment
+from app.domain.report import ReportFinding, ReportRisk, SecurityReport
 from app.domain.scan import ScanResult
 
 if TYPE_CHECKING:
-    from app.api.schemas import ScanFindingResponse, ScanResponse, ScanRiskResponse
+    from app.api.schemas import ScanResponse
+
+
 
 MAX_REPORT_EVIDENCE_LENGTH = 500
 MAX_REPORT_FINDINGS = 100
@@ -193,8 +193,9 @@ class ReportEngine:
                 lvl_str = str(lvl_raw.value if hasattr(lvl_raw, "value") else lvl_raw)
 
                 factors_obj = getattr(r, "factors", None)
-                if hasattr(factors_obj, "model_dump"):
+                if factors_obj is not None and hasattr(factors_obj, "model_dump"):
                     factors_dict = factors_obj.model_dump()
+
                 elif hasattr(factors_obj, "__dict__"):
                     factors_dict = {k: str(v.value if hasattr(v, "value") else v) for k, v in factors_obj.__dict__.items()}
                 elif isinstance(factors_obj, dict):

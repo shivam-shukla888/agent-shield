@@ -23,11 +23,14 @@ from app.domain.probe import SecurityProbe
 from app.domain.risk import RiskAssessment, RiskFactors, RiskLevel
 from app.domain.scan import ScanResult, ScanStatus, ScanSummary
 from app.engine.attack import AttackEngine
+from app.engine.attack_path import AttackPathEngine
 from app.engine.finding import FindingEngine
 from app.engine.risk import RiskEngine
+from app.engine.threat_model import ThreatModelGenerator
 from app.evaluation.base import Evaluator
 import time
 from app.observability import emit_event, get_logger
+from app.observability.tracing import AgentShieldTracer
 
 logger = get_logger("agentshield.engine.scan")
 
@@ -35,22 +38,7 @@ logger = get_logger("agentshield.engine.scan")
 class ScanEngine:
     """
     Core orchestrator coordinating security probe execution, evaluation, finding aggregation,
-    and contextual risk assessment into a unified ScanResult.
-
-    Pipeline Dataflow:
-    ScanEngine ──► AttackEngine ──► ProbeExecution
-                     │
-                     ▼
-                  Evaluator ──► EvaluationResult
-                                    │
-                                    ▼
-                               FindingEngine ──► Finding
-                                                     │
-                                                     ▼
-                                                RiskEngine ──► RiskAssessment
-                                                                    │
-                                                                    ▼
-                                                               ScanResult
+    quantitative risk assessment, threat modeling, and attack path correlation into a unified ScanResult.
     """
 
     def __init__(
@@ -59,15 +47,12 @@ class ScanEngine:
         evaluator: Evaluator,
         finding_engine: FindingEngine,
         risk_engine: RiskEngine,
+        threat_model_generator: Optional[ThreatModelGenerator] = None,
+        attack_path_engine: Optional[AttackPathEngine] = None,
+        tracer: Optional[AgentShieldTracer] = None,
     ) -> None:
         """
         Initialize ScanEngine with injected component dependencies.
-
-        Args:
-            attack_engine (AttackEngine): Engine for executing security probes against targets.
-            evaluator (Evaluator): Evaluator engine for judging probe execution responses.
-            finding_engine (FindingEngine): Engine for converting/aggregating evaluation violations into Findings.
-            risk_engine (RiskEngine): Engine for assessing contextual risk of Findings.
         """
         if not isinstance(attack_engine, AttackEngine):
             raise ValueError("attack_engine must be a valid AttackEngine instance")
@@ -82,6 +67,10 @@ class ScanEngine:
         self.evaluator = evaluator
         self.finding_engine = finding_engine
         self.risk_engine = risk_engine
+        self.threat_model_generator = threat_model_generator or ThreatModelGenerator()
+        self.attack_path_engine = attack_path_engine or AttackPathEngine()
+        self.tracer = tracer or AgentShieldTracer()
+
 
     def run_scan(
         self,
@@ -264,7 +253,18 @@ class ScanEngine:
             scan_event = "scan.completed"
             scan_level = 20
 
-        # 8. Build Summary Statistics
+        # 8. Build Threat Model & Attack Paths
+        threat_model = self.threat_model_generator.generate_threat_model(
+            target_name=clean_target_name,
+            declared_tools=[p.name for p in probes],
+        )
+        attack_paths = self.attack_path_engine.correlate_attack_paths(findings)
+
+        scan_meta = dict(metadata) if metadata else {}
+        scan_meta["threat_model"] = threat_model.model_dump()
+        scan_meta["attack_paths"] = [ap.model_dump() for ap in attack_paths]
+
+        # 9. Build Summary Statistics
         summary = ScanSummary(
             total_probes=len(probes),
             completed_executions=sum(1 for e in executions if e.status == ExecutionStatus.COMPLETED),
@@ -299,7 +299,7 @@ class ScanEngine:
             total_risks=len(risk_assessments),
         )
 
-        # 9. Return Unified ScanResult
+        # 10. Return Unified ScanResult
         return ScanResult(
             scan_id=clean_scan_id,
             target_name=clean_target_name,
@@ -311,5 +311,6 @@ class ScanEngine:
             evaluations=evaluations,
             findings=findings,
             risk_assessments=risk_assessments,
-            metadata=metadata or {},
+            metadata=scan_meta,
         )
+

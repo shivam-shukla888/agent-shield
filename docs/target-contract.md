@@ -246,16 +246,13 @@ The adapter formats the incoming attack payload string (`"hello"`) into the targ
   { "input": "hello" }
   ```
 
-#### Configurable Response Extraction Examples
+#### Configurable Response Extraction & Auto-Detection
 
-The adapter applies key paths or JSONPath extractions to isolate the agent's response text:
+The adapter implements auto-detection across standard response keys and nested schemas, with fallback to explicit dot-notation/JSONPath extraction (`response_path`):
 
-* **Field `response`**: Extract `data["response"]` $\rightarrow$ `"Hello"`
-* **Field `answer`**: Extract `data["answer"]` $\rightarrow$ `"Hello"`
-* **Field `output`**: Extract `data["output"]` $\rightarrow$ `"Hello"`
-* **Nested structure**: Extract `data["choices"][0]["message"]["content"]` $\rightarrow$ `"Hello"`
+* **Auto-Detection**: Scans top-level keys (`response`, `answer`, `output`, `text`, `message`, `content`, `result`) and common nested structures (e.g. `choices[0].message.content`, `choices[0].text`, `result.output`).
+* **Explicit JSONPath / Dot-Notation Fallback**: If configured via `response_path` (e.g. `data.response` or `choices.0.message.content`), explicit path extraction is evaluated.
 
-*(Note: Concrete HTTP client code and adapter implementations will be written in future steps.)*
 
 ---
 

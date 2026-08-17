@@ -277,7 +277,16 @@ Detailed architectural blueprints are available in the [`docs/`](./docs) directo
 
 ---
 
-## 9. Architectural Decisions & Resolutions
+## 9. Current Known Limitations
+
+* **Scan Progress Polling**: The Streamlit Scan Studio workspace uses HTTP status polling (`GET /api/v1/scans/{id}`) to visualize probe execution progress, rather than persistent WebSocket/SSE streaming.
+* **Target Domain Allowlisting**: Server-side domain allowlisting is optional and environment-gated (`AGENTSHIELD_ALLOWED_TARGET_DOMAINS`). When unconfigured (empty), all target hostnames are permitted.
+* **Sandbox Evaluation Scope**: The Adversarial Sandbox tab routes prompt payloads directly to the backend `POST /api/v1/evaluate/payload` endpoint using `DeterministicEvaluator` rules. Complex multi-step LLM reasoning evaluations require running a full scan via Scan Studio.
+
+---
+
+## 10. Architectural Decisions & Resolutions
+
 
 > [!NOTE]
 > **Decision 1: Target Adapter Response Parsing Fallback — Resolved**  

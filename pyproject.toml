@@ -20,7 +20,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=8.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.9.0",
 ]
+
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -27,7 +27,7 @@ class LLMProviderConfig(BaseModel):
 
     provider_type: str = Field(
         default="fake",
-        description="Type of LLM provider engine ('fake', 'production', 'openai')"
+        description="Type of LLM provider engine ('fake', 'cloud', 'production', 'openai', 'ollama')"
     )
     api_key: Optional[SecretStr] = Field(
         default=None,
@@ -35,7 +35,7 @@ class LLMProviderConfig(BaseModel):
     )
     model: str = Field(
         default="gpt-4o",
-        description="Model name/version string (e.g. gpt-4o, claude-3-5-sonnet)"
+        description="Model name/version string (e.g. gpt-4o, claude-3-5-sonnet, llama3)"
     )
     timeout_seconds: float = Field(
         default=30.0,
@@ -52,10 +52,11 @@ class LLMProviderConfig(BaseModel):
         clean = v.strip().lower()
         if not clean:
             raise ValueError("provider_type must not be empty")
-        valid_providers = {"fake", "production", "openai"}
+        valid_providers = {"fake", "production", "openai", "cloud", "ollama"}
         if clean not in valid_providers:
             raise ValueError(f"Unsupported provider_type '{v}'. Supported options: {sorted(valid_providers)}")
         return clean
+
 
     @field_validator("model")
     @classmethod
@@ -108,18 +109,24 @@ class LLMProviderConfig(BaseModel):
         )
         api_key = SecretStr(api_key_str.strip()) if api_key_str and api_key_str.strip() else None
 
+        default_model = "llama3" if provider_type.lower() == "ollama" else "gpt-4o"
         model = (
             os.getenv("AGENTSHIELD_LLM_MODEL")
             or os.getenv("LLM_MODEL")
-            or "gpt-4o"
+            or default_model
         )
         env_timeout = os.getenv("AGENTSHIELD_LLM_TIMEOUT") or os.getenv("LLM_TIMEOUT")
         timeout = float(env_timeout) if env_timeout and env_timeout.strip() else 30.0
 
+        default_endpoint = (
+            "http://localhost:11434/v1/chat/completions"
+            if provider_type.lower() == "ollama"
+            else "https://api.openai.com/v1/chat/completions"
+        )
         endpoint = (
             os.getenv("AGENTSHIELD_LLM_ENDPOINT")
             or os.getenv("LLM_ENDPOINT")
-            or "https://api.openai.com/v1/chat/completions"
+            or default_endpoint
         )
 
         return cls(

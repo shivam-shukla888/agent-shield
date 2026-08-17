@@ -72,8 +72,9 @@ class ProductionLLMProvider(LLMProvider):
         if not isinstance(config, LLMProviderConfig):
             raise ValueError("config must be a valid LLMProviderConfig instance")
 
-        if config.api_key is None or not config.api_key.get_secret_value().strip():
-            raise LLMProviderError("Missing required API key for production LLM provider")
+        if config.provider_type.lower() != "ollama":
+            if config.api_key is None or not config.api_key.get_secret_value().strip():
+                raise LLMProviderError("Missing required API key for production LLM provider")
 
         self.config = config
         self._http_client = http_client
@@ -103,11 +104,11 @@ class ProductionLLMProvider(LLMProvider):
             "temperature": 0.0,
         }
 
-        api_key_str = self.config.api_key.get_secret_value().strip() if self.config.api_key else ""
-        headers = {
-            "Authorization": f"Bearer {api_key_str}",
-            "Content-Type": "application/json",
-        }
+        headers = {"Content-Type": "application/json"}
+        if self.config.api_key and self.config.api_key.get_secret_value().strip():
+            api_key_str = self.config.api_key.get_secret_value().strip()
+            headers["Authorization"] = f"Bearer {api_key_str}"
+
 
         start_perf = time.perf_counter()
         emit_event(

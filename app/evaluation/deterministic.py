@@ -14,7 +14,8 @@ ARCHITECTURAL DIRECTIVES:
 """
 
 import uuid
-from typing import Dict, List, Optional, Set
+from typing import List, Optional, Set
+
 
 from app.domain.evaluation import (
     EvaluationEvidence,

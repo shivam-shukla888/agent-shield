@@ -21,11 +21,9 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 from fastapi import BackgroundTasks
 
 from app.api.schemas import (
-    RiskContextRequest,
     ScanRequest,
     ScanResponse,
     ScanSummaryResponse,
-    TargetScanRequest,
     risk_context_request_to_risk_factors,
     scan_request_to_target_config,
     scan_result_to_response,

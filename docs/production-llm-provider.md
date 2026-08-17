@@ -40,11 +40,12 @@ Defined in `app/evaluation/config.py`. Immutable Pydantic model (`ConfigDict(fro
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `provider_type` | `str` | `"fake"` | Provider implementation (`fake`, `production`, `openai`) |
-| `api_key` | `Optional[SecretStr]` | `None` | Vendor API key (wrapped in `SecretStr`) |
-| `model` | `str` | `"gpt-4o"` | Model version string |
+| `provider_type` | `str` | `"fake"` | Provider implementation (`fake`, `cloud`, `production`, `openai`, `ollama`) |
+| `api_key` | `Optional[SecretStr]` | `None` | Vendor API key (wrapped in `SecretStr`; optional for `ollama`) |
+| `model` | `str` | `"gpt-4o"` | Model version string (e.g., `gpt-4o`, `llama3`) |
 | `timeout_seconds` | `float` | `30.0` | Bounded request timeout ceiling ($0.1\text{s} - 300\text{s}$) |
-| `endpoint` | `str` | `https://api.openai.com/v1/chat/completions` | Vendor REST API endpoint URL |
+| `endpoint` | `str` | `https://api.openai.com/v1/chat/completions` | REST API endpoint URL (or `http://localhost:11434/v1/chat/completions` for local Ollama) |
+
 
 ---
 

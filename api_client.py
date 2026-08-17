@@ -95,12 +95,20 @@ def post_scan(backend_url: str, api_key: str, payload: Dict[str, Any], is_demo: 
         resp = requests.post(url, json=payload, headers=get_headers(api_key), timeout=10.0)
         if resp.status_code in (200, 201, 202):
             return resp.json()
+        elif resp.status_code == 400:
+            err_detail = "Bad Request"
+            try:
+                err_detail = resp.json().get("detail", err_detail)
+            except Exception:
+                pass
+            return {"error": err_detail}
         return None
     except Exception:
         return None
 
 
-def list_scans(backend_url: str, api_key: str, is_demo: bool = False) -> List[Dict[str, Any]]:
+def list_scans(backend_url: str, api_key: str, is_demo: bool = False) -> Optional[List[Dict[str, Any]]]:
+
     if is_demo:
         return MOCK_SCANS_LIST
 
@@ -109,9 +117,9 @@ def list_scans(backend_url: str, api_key: str, is_demo: bool = False) -> List[Di
         resp = requests.get(url, headers=get_headers(api_key), timeout=5.0)
         if resp.status_code == 200:
             return resp.json()
-        return MOCK_SCANS_LIST
+        return None
     except Exception:
-        return MOCK_SCANS_LIST
+        return None
 
 
 def get_scan(backend_url: str, api_key: str, scan_id: str, is_demo: bool = False) -> Optional[Dict[str, Any]]:
@@ -146,4 +154,40 @@ def get_report(backend_url: str, api_key: str, scan_id: str, fmt: str = "html", 
         return None
     except Exception:
         return None
+
+
+def evaluate_payload(backend_url: str, api_key: str, payload: str, is_demo: bool = False) -> Optional[Dict[str, Any]]:
+    if is_demo:
+        p_lower = payload.lower()
+        is_viol = any(
+            k in p_lower
+            for k in ["ignore", "override", "system prompt", "verbatim", "admin", "password", "tokens", "social security", "drop_tables"]
+        )
+        if is_viol:
+            return {
+                "is_violation": True,
+                "rule_id": "RULE_DEMO_VIOLATION",
+                "description": "Adversarial Pattern Detected (Demo Mode)",
+                "severity": "CRITICAL",
+                "evidence": f"Matched indicator pattern sequence in input payload: '{payload[:60]}...'",
+                "remediation": "# Enforce out-of-band deterministic authorization layer outside LLM context",
+            }
+        return {
+            "is_violation": False,
+            "rule_id": None,
+            "description": "No violation detected (Demo Mode)",
+            "severity": "LOW",
+            "evidence": "Payload stayed within expected security parameters",
+            "remediation": "No action needed",
+        }
+
+    try:
+        url = f"{backend_url.rstrip('/')}/api/v1/evaluate/payload"
+        resp = requests.post(url, json={"payload": payload}, headers=get_headers(api_key), timeout=5.0)
+        if resp.status_code == 200:
+            return resp.json()
+        return None
+    except Exception:
+        return None
+
 

@@ -127,14 +127,14 @@ class PostgreSQLScanRepository(ScanRepository):
                     )
                     session.add(db_record)
                 else:
-                    db_record.target_name = scan.target_name
-                    db_record.status = str(scan.status)
-                    db_record.started_at = scan.started_at
-                    db_record.completed_at = scan.completed_at
-                    db_record.summary_json = summary_json
-                    db_record.findings_json = findings_json
-                    db_record.risk_assessments_json = risk_assessments_json
-                    db_record.payload_json = serialized_payload
+                    db_record.target_name = scan.target_name  # type: ignore[assignment]
+                    db_record.status = str(scan.status)  # type: ignore[assignment]
+                    db_record.started_at = scan.started_at  # type: ignore[assignment]
+                    db_record.completed_at = scan.completed_at  # type: ignore[assignment]
+                    db_record.summary_json = summary_json  # type: ignore[assignment]
+                    db_record.findings_json = findings_json  # type: ignore[assignment]
+                    db_record.risk_assessments_json = risk_assessments_json  # type: ignore[assignment]
+                    db_record.payload_json = serialized_payload  # type: ignore[assignment]
 
             return scan
         except SQLAlchemyError as exc:
@@ -142,7 +142,7 @@ class PostgreSQLScanRepository(ScanRepository):
 
     def get_by_id(self, scan_id: str) -> Optional[ScanResponse]:
         """
-        Retrieve a stored scan by unique scan_id.
+        Retrieve a single scan record by ID and reconstruct its public ScanResponse DTO.
 
         Args:
             scan_id (str): Unique scan identifier.
@@ -151,12 +151,9 @@ class PostgreSQLScanRepository(ScanRepository):
             Optional[ScanResponse]: Reconstructed ScanResponse DTO if found, else None.
 
         Raises:
-            RepositoryError: If a database query error occurs.
+            RepositoryError: If a database error occurs.
         """
-        if not scan_id:
-            return None
-
-        clean_id = scan_id.strip()
+        clean_id = scan_id.strip() if scan_id else ""
         if not clean_id:
             return None
 
@@ -165,7 +162,7 @@ class PostgreSQLScanRepository(ScanRepository):
                 record = session.get(ScanModel, clean_id)
                 if record is None:
                     return None
-                return ScanResponse.model_validate_json(record.payload_json)
+                return ScanResponse.model_validate_json(str(record.payload_json))
         except SQLAlchemyError as exc:
             raise RepositoryError("Failed to retrieve scan record from database") from exc
 
@@ -191,6 +188,6 @@ class PostgreSQLScanRepository(ScanRepository):
                 if limit is not None and limit >= 0:
                     stmt = stmt.limit(limit)
                 records = session.scalars(stmt).all()
-                return [ScanResponse.model_validate_json(r.payload_json) for r in records]
+                return [ScanResponse.model_validate_json(str(r.payload_json)) for r in records]
         except SQLAlchemyError as exc:
             raise RepositoryError("Failed to list scan records from database") from exc

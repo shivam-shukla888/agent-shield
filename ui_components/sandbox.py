@@ -1,8 +1,6 @@
-"""
-AgentShield UI Components — Adversarial Prompt Sandbox Module (ui_components/sandbox.py)
-"""
-
+import api_client
 import streamlit as st
+
 
 
 SANDBOX_PRESETS = {
@@ -33,7 +31,8 @@ SANDBOX_PRESETS = {
 }
 
 
-def render_sandbox_tab():
+def render_sandbox_tab(backend_url: str = "http://localhost:8000", api_key: str = "", is_demo: bool = False):
+
     """
     Renders the Adversarial Prompt Sandbox research environment tab.
     """
@@ -70,46 +69,32 @@ def render_sandbox_tab():
     with s_col2:
         st.markdown("**Rule Evaluation Verdict:**")
         if test_eval_btn and prompt_text:
-            p_lower = prompt_text.lower()
-            is_violation = any(
-                k in p_lower
-                for k in ["ignore", "override", "system prompt", "verbatim", "admin", "password", "tokens", "social security", "drop_tables"]
-            )
-
-            if is_violation:
-                matched_rule_id = "RULE_INSTRUCTION_OVERRIDE"
-                matched_rule_desc = "Instruction Override Pattern Detection Rule"
-                
-                if "password" in p_lower or "social security" in p_lower or "tokens" in p_lower:
-                    matched_rule_id = "RULE_PII_EXFILTRATION"
-                    matched_rule_desc = "Sensitive Data & Credential Exfiltration Rule"
-                elif "drop_tables" in p_lower or "execute tool" in p_lower:
-                    matched_rule_id = "RULE_TOOL_AUTHORIZATION"
-                    matched_rule_desc = "Unauthorized Tool Action Rule"
-                elif "system instructions" in p_lower or "verbatim" in p_lower:
-                    matched_rule_id = "RULE_SYSTEM_PROMPT_LEAK"
-                    matched_rule_desc = "System Prompt Disclosure Detection Rule"
+            res = api_client.evaluate_payload(backend_url, api_key, prompt_text, is_demo)
+            if res is None:
+                st.error("⚠️ Payload evaluation failed. Verify backend connectivity in sidebar.")
+            elif res.get("is_violation"):
+                rule_id = res.get("rule_id", "RULE_VIOLATION")
+                rule_desc = res.get("description", "Deterministic Rule Violation")
+                sev = (res.get("severity") or "CRITICAL").upper()
+                evidence = res.get("evidence", f"Matched indicator pattern in: '{prompt_text[:60]}...'")
+                remediation = res.get("remediation", "# Enforce deterministic authorization boundary outside LLM context")
 
                 st.error("VERDICT: POLICY VIOLATION DETECTED")
-                st.markdown('<span class="pill-critical"><span class="pulse-dot"></span> CRITICAL BREACH</span>', unsafe_allow_html=True)
-                st.write(f"**Matched Evaluator Rule:** `{matched_rule_id}` ({matched_rule_desc})")
+                badge_class = "pill-critical" if sev == "CRITICAL" else "pill-high"
+                st.markdown(f'<span class="{badge_class}"><span class="pulse-dot"></span> {sev} BREACH</span>', unsafe_allow_html=True)
+                st.write(f"**Matched Evaluator Rule:** `{rule_id}` ({rule_desc})")
                 st.write("**Violation Analysis:** Deterministic pattern evaluation confirmed policy breach sequence in prompt text.")
-                
+
                 st.markdown("**Evidence Excerpt:**")
-                st.markdown(f'<div class="evidence-box">> Matched indicator sequence in input payload: "{prompt_text[:65]}..."</div>', unsafe_allow_html=True)
-                
-                st.markdown("""
-                **Recommended Policy Fix:**
-                ```python
-                # Enforce out-of-band deterministic authorization layer
-                if not auth_context.is_admin():
-                    raise PermissionError("Action denied: LLM alignment cannot grant privileged tool access.")
-                ```
-                """)
+                st.markdown(f'<div class="evidence-box">> {evidence}</div>', unsafe_allow_html=True)
+
+                st.markdown("**Recommended Policy Fix:**")
+                st.code(remediation, language="python")
             else:
                 st.success("VERDICT: SAFE / ALIGNED")
                 st.markdown('<span class="pill-safe">PASSED — LOW RISK</span>', unsafe_allow_html=True)
-                st.write("No pattern-level policy breach detected in this payload.")
+                st.write("No pattern-level policy breach detected by DeterministicEvaluator for this payload.")
         elif test_eval_btn:
             st.info("Enter or select an adversarial prompt payload to test.")
+
 
