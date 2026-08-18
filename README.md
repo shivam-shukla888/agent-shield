@@ -2,7 +2,7 @@
 
 **AI Agent Security Testing & Risk Analysis Platform**
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-AgentShield_Platform-004AC6?style=for-the-badge&logo=streamlit)](docs/DEPLOYMENT.md)
+[![Deployment Guide](https://img.shields.io/badge/Deployment_Guide-AgentShield_Platform-004AC6?style=for-the-badge&logo=streamlit)](docs/DEPLOYMENT.md)
 [![Build Status](https://img.shields.io/badge/CI%2FCD-Passing-006C4A?style=for-the-badge)](https://github.com/shivam-shukla888/agent-shield/actions)
 
 AgentShield is an enterprise-grade security testing framework designed to audit, evaluate, and quantify security risks in LLM-powered autonomous AI agents and agentic workflows operating in a **local, CI/CD, or controlled security testing environment**.
@@ -213,14 +213,14 @@ The initial release focuses on establishing a clean **Modular Monolith** archite
 
 AgentShield implements the **Cybernetic Precision Light Theme** design system across both the Streamlit UI and the standalone FastAPI Web Audit Dashboard (`/dashboard`).
 
-* **Design Source of Truth**: [`design/stitch_mockups/stitch_agentshield_security_platform/cybernetic_precision/DESIGN.md`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/cybernetic_precision/DESIGN.md)
+* **Design Source of Truth**: [`design/stitch_mockups/stitch_agentshield_security_platform/cybernetic_precision/DESIGN.md`](./design/stitch_mockups/stitch_agentshield_security_platform/cybernetic_precision/DESIGN.md)
 * **Tokens**: Primary Electric Blue (`#004AC6`), Success Emerald (`#006C4A`), Error Crimson (`#D52022`), Slate Canvas (`#FAF8FF`), Surface (`#FFFFFF`), Text (`#131B2E`).
 * **Typography**: **Plus Jakarta Sans** (Headlines) + **Inter** (Body/Labels) + **JetBrains Mono** (Telemetry/IDs/Hashes/Logs).
 * **Workstation Screens**:
-  1. **Executive Security Overview**: [`executive_security_overview_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/executive_security_overview_polished/)
-  2. **Scan Studio & Pipeline Orchestrator**: [`pipeline_orchestrator_scan_studio_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/pipeline_orchestrator_scan_studio_polished/)
-  3. **Audit Log & Forensic Inspector**: [`audit_log_forensic_inspector_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/audit_log_forensic_inspector_polished/)
-  4. **Adversarial Sandbox & Diagnostics**: [`adversarial_sandbox_diagnostics_polished`](file:///c:/Users/thesh/OneDrive/Desktop/Agentguard/design/stitch_mockups/stitch_agentshield_security_platform/adversarial_sandbox_diagnostics_polished/)
+  1. **Executive Security Overview**: [`executive_security_overview_polished`](./design/stitch_mockups/stitch_agentshield_security_platform/executive_security_overview_polished/)
+  2. **Scan Studio & Pipeline Orchestrator**: [`pipeline_orchestrator_scan_studio_polished`](./design/stitch_mockups/stitch_agentshield_security_platform/pipeline_orchestrator_scan_studio_polished/)
+  3. **Audit Log & Forensic Inspector**: [`audit_log_forensic_inspector_polished`](./design/stitch_mockups/stitch_agentshield_security_platform/audit_log_forensic_inspector_polished/)
+  4. **Adversarial Sandbox & Diagnostics**: [`adversarial_sandbox_diagnostics_polished`](./design/stitch_mockups/stitch_agentshield_security_platform/adversarial_sandbox_diagnostics_polished/)
 
 ---
 
@@ -246,7 +246,7 @@ AgentShield includes a production Streamlit client app (`streamlit_app.py`).
 
 ---
 
-## 8. Documentation Index
+## 9. Documentation Index
 
 Detailed architectural blueprints are available in the [`docs/`](./docs) directory:
 
@@ -282,7 +282,7 @@ Detailed architectural blueprints are available in the [`docs/`](./docs) directo
 
 ---
 
-## 9. Current Known Limitations
+## 10. Current Known Limitations
 
 * **Scan Progress Polling**: The Streamlit Scan Studio workspace uses HTTP status polling (`GET /api/v1/scans/{id}`) to visualize probe execution progress, rather than persistent WebSocket/SSE streaming.
 * **Target Domain Allowlisting**: Server-side domain allowlisting is optional and environment-gated (`AGENTSHIELD_ALLOWED_TARGET_DOMAINS`). When unconfigured (empty), all target hostnames are permitted.
@@ -290,7 +290,7 @@ Detailed architectural blueprints are available in the [`docs/`](./docs) directo
 
 ---
 
-## 10. Architectural Decisions & Resolutions
+## 11. Architectural Decisions & Resolutions
 
 
 > [!NOTE]
