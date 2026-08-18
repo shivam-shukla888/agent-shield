@@ -104,7 +104,10 @@ class ProductionLLMProvider(LLMProvider):
             "temperature": 0.0,
         }
 
-        headers = {"Content-Type": "application/json"}
+        headers = {
+            "Content-Type": "application/json",
+            "User-Agent": "AgentShield/1.0 (Security Evaluator)",
+        }
         if self.config.api_key and self.config.api_key.get_secret_value().strip():
             api_key_str = self.config.api_key.get_secret_value().strip()
             headers["Authorization"] = f"Bearer {api_key_str}"

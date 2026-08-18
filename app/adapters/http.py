@@ -285,7 +285,7 @@ class GenericHTTPAdapter(TargetAdapter):
                     message=(
                         f"Could not extract response from target JSON using path '{self.config.response_path}'"
                         if self.config.response_path
-                        else "Could not extract text response from target JSON"
+                        else "Response extraction failed: Could not auto-detect text response from target JSON schema. Auto-detection attempted keys ('response', 'answer', 'output', 'text', 'message', 'content', 'result', 'reply', 'data.*', 'payload.*'). Please configure 'response_path' in TargetConfig manually."
                     ),
                     retryable=False,
                 ),
@@ -360,11 +360,9 @@ class GenericHTTPAdapter(TargetAdapter):
         Extract textual response from target JSON payload using auto-detection
         with fallback to explicit JSONPath/dot-notation configuration (Open Decision 1 Resolution).
         """
-        # 1. Try explicit path extraction if path configured
-        if path:
-            extracted = self._extract_by_path(data, path)
-            if extracted is not None:
-                return extracted
+        # 1. If explicit path is configured, evaluate strictly against path
+        if path and path.strip():
+            return self._extract_by_path(data, path.strip())
 
         # 2. Perform auto-detection across standard top-level and nested response keys
         return self._auto_detect_response_text(data)
@@ -390,15 +388,16 @@ class GenericHTTPAdapter(TargetAdapter):
     def _auto_detect_response_text(self, data: Any) -> Optional[str]:
         """
         Auto-detect response text from common REST API response schemas:
-        - Top-level keys: "response", "answer", "output", "text", "message", "content", "result"
-        - Nested keys: choices[0].message.content, choices[0].text, message.content, result.output
+        - Top-level keys: "response", "answer", "output", "text", "message", "content", "result", "reply"
+        - Nested structures: data.*, payload.*, result.*, choices[0].message.content
+        - Single string-field fallback for arbitrary custom response objects.
         """
         if isinstance(data, str):
             return data
 
         if isinstance(data, dict):
-            # Direct top-level string/primitive keys
-            for key in ("response", "answer", "output", "text", "message", "content", "result"):
+            # Direct top-level string/primitive keys (including "reply")
+            for key in ("response", "answer", "output", "text", "message", "content", "result", "reply"):
                 if key in data:
                     val = data[key]
                     if isinstance(val, str):
@@ -407,9 +406,17 @@ class GenericHTTPAdapter(TargetAdapter):
                         return str(val)
                     elif isinstance(val, dict):
                         # e.g., {"message": {"content": "..."}}
-                        for subkey in ("content", "text", "value"):
+                        for subkey in ("content", "text", "value", "reply", "body"):
                             if subkey in val and isinstance(val[subkey], str):
                                 return val[subkey]
+
+            # Nested container structures: "data", "payload", "result", "assistant_reply"
+            for container_key in ("data", "payload", "result", "assistant_reply"):
+                if container_key in data and isinstance(data[container_key], dict):
+                    container = data[container_key]
+                    for subkey in ("reply", "response", "output", "text", "message", "content", "body"):
+                        if subkey in container and isinstance(container[subkey], str):
+                            return container[subkey]
 
             # Standard OpenAI / ChatCompletion structure: choices[0].message.content or choices[0].text
             if "choices" in data and isinstance(data["choices"], list) and len(data["choices"]) > 0:
@@ -422,12 +429,15 @@ class GenericHTTPAdapter(TargetAdapter):
                     if "text" in choice and isinstance(choice["text"], str):
                         return choice["text"]
 
-            # Standard nested result structure: result.output or result.text
-            if "result" in data and isinstance(data["result"], dict):
-                res = data["result"]
-                for subkey in ("output", "text", "response", "content"):
-                    if subkey in res and isinstance(res[subkey], str):
-                        return res[subkey]
+            # Fallback: Check for single non-metadata top-level string field
+            string_candidates = [
+                (k, v) for k, v in data.items()
+                if isinstance(v, str) and k.lower() not in ("status", "id", "error", "code", "type", "version")
+            ]
+            if string_candidates:
+                # Return the longest string candidate (most likely to be the assistant response text)
+                string_candidates.sort(key=lambda item: len(item[1]), reverse=True)
+                return string_candidates[0][1]
 
         return None
 

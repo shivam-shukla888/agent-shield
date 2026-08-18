@@ -68,14 +68,14 @@ def test_end_to_end_detection_pipeline_against_vulnerable_target_fixture() -> No
 
     # 2. Execute probes via AttackEngine
     executions: list[ProbeExecution] = engine.execute_probes(probes)
-    assert len(executions) == 3
+    assert len(executions) == len(probes)
 
     # 3. Evaluate each ProbeExecution using DeterministicEvaluator
     evaluation_results: list[EvaluationResult] = [
         evaluator.evaluate(probe, execution)
         for probe, execution in zip(probes, executions)
     ]
-    assert len(evaluation_results) == 3
+    assert len(evaluation_results) == len(probes)
 
     eval_map = {res.probe_id: res for res in evaluation_results}
 

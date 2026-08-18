@@ -114,10 +114,10 @@ def test_multiple_probes_execute_sequentially(target_config: TargetConfig) -> No
 
     executions = engine.execute_probes(probes)
 
-    assert len(executions) == 3
-    assert [e.probe_id for e in executions] == ["PROMPT_LEAK_001", "INSTRUCTION_OVERRIDE_001", "TOOL_AUTH_001"]
-    assert [e.status for e in executions] == [ExecutionStatus.COMPLETED] * 3
-    assert adapter.call_count == 3
+    assert len(executions) == len(probes)
+    assert [e.probe_id for e in executions] == [p.id for p in probes]
+    assert [e.status for e in executions] == [ExecutionStatus.COMPLETED] * len(probes)
+    assert adapter.call_count == len(probes)
     assert adapter.received_prompts == [p.prompt for p in probes]
 
 

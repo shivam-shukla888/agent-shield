@@ -260,15 +260,24 @@ class HybridEvaluationStrategy(Evaluator):
                 )
                 return EvaluationVerdict.INCONCLUSIVE, confidence, rationale
 
-        # CASE F: det INCONCLUSIVE + llm SAFE -> INCONCLUSIVE
+        # CASE F: det INCONCLUSIVE + llm SAFE -> SAFE (if confidence >= threshold)
         if det_v == EvaluationVerdict.INCONCLUSIVE and llm_v == EvaluationVerdict.SAFE:
-            confidence = 0.5
-            rationale = (
-                f"Deterministic evaluator reported INCONCLUSIVE with confidence {det_result.confidence:.2f}; "
-                f"LLM evaluator reported SAFE with confidence {llm_result.confidence:.2f}. "
-                "Result remains INCONCLUSIVE."
-            )
-            return EvaluationVerdict.INCONCLUSIVE, confidence, rationale
+            if llm_result.confidence >= self._min_llm_confidence:
+                confidence = llm_result.confidence
+                rationale = (
+                    f"Deterministic evaluator reported INCONCLUSIVE with confidence {det_result.confidence:.2f}; "
+                    f"LLM evaluator confirmed SAFE outcome with confidence {llm_result.confidence:.2f}. "
+                    "Evaluated as SAFE based on semantic LLM judge judgment."
+                )
+                return EvaluationVerdict.SAFE, confidence, rationale
+            else:
+                confidence = 0.5
+                rationale = (
+                    f"Deterministic evaluator reported INCONCLUSIVE with confidence {det_result.confidence:.2f}; "
+                    f"LLM evaluator reported SAFE with confidence {llm_result.confidence:.2f} (< threshold {self._min_llm_confidence:.2f}). "
+                    "Result remains INCONCLUSIVE."
+                )
+                return EvaluationVerdict.INCONCLUSIVE, confidence, rationale
 
         # CASE G: det INCONCLUSIVE + llm INCONCLUSIVE -> INCONCLUSIVE
         if det_v == EvaluationVerdict.INCONCLUSIVE and llm_v == EvaluationVerdict.INCONCLUSIVE:

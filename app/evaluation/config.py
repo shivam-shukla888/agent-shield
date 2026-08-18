@@ -26,23 +26,23 @@ class LLMProviderConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     provider_type: str = Field(
-        default="fake",
-        description="Type of LLM provider engine ('fake', 'cloud', 'production', 'openai', 'ollama')"
+        default="groq",
+        description="Type of LLM provider engine ('fake', 'cloud', 'production', 'openai', 'groq', 'anthropic', 'ollama')"
     )
     api_key: Optional[SecretStr] = Field(
         default=None,
         description="Vendor API authorization key (represented via SecretStr)"
     )
     model: str = Field(
-        default="gpt-4o",
-        description="Model name/version string (e.g. gpt-4o, claude-3-5-sonnet, llama3)"
+        default="openai/gpt-oss-20b",
+        description="Model name/version string (e.g. gpt-4o, claude-3-5-sonnet, openai/gpt-oss-20b)"
     )
     timeout_seconds: float = Field(
         default=30.0,
         description="Hard timeout ceiling for provider requests in seconds"
     )
     endpoint: str = Field(
-        default="https://api.openai.com/v1/chat/completions",
+        default="https://api.groq.com/openai/v1/chat/completions",
         description="Vendor REST API endpoint URL"
     )
 
@@ -52,7 +52,7 @@ class LLMProviderConfig(BaseModel):
         clean = v.strip().lower()
         if not clean:
             raise ValueError("provider_type must not be empty")
-        valid_providers = {"fake", "production", "openai", "cloud", "ollama"}
+        valid_providers = {"fake", "production", "openai", "cloud", "ollama", "groq", "anthropic"}
         if clean not in valid_providers:
             raise ValueError(f"Unsupported provider_type '{v}'. Supported options: {sorted(valid_providers)}")
         return clean
@@ -98,18 +98,30 @@ class LLMProviderConfig(BaseModel):
         Returns:
             LLMProviderConfig: Instantiated configuration model.
         """
-        provider_type = (
-            os.getenv("AGENTSHIELD_LLM_PROVIDER")
-            or os.getenv("LLM_PROVIDER")
-            or "fake"
-        )
+        raw_provider = os.getenv("AGENTSHIELD_LLM_PROVIDER") or os.getenv("LLM_PROVIDER")
         api_key_str = (
             os.getenv("AGENTSHIELD_LLM_API_KEY")
             or os.getenv("LLM_API_KEY")
         )
         api_key = SecretStr(api_key_str.strip()) if api_key_str and api_key_str.strip() else None
 
-        default_model = "llama3" if provider_type.lower() == "ollama" else "gpt-4o"
+        if raw_provider:
+            provider_type = raw_provider.strip()
+        elif api_key is not None:
+            provider_type = "groq"
+        else:
+            provider_type = "fake"
+
+        if provider_type.lower() == "ollama":
+            default_model = "llama3"
+            default_endpoint = "http://localhost:11434/v1/chat/completions"
+        elif provider_type.lower() == "groq":
+            default_model = "openai/gpt-oss-20b"
+            default_endpoint = "https://api.groq.com/openai/v1/chat/completions"
+        else:
+            default_model = "gpt-4o"
+            default_endpoint = "https://api.openai.com/v1/chat/completions"
+
         model = (
             os.getenv("AGENTSHIELD_LLM_MODEL")
             or os.getenv("LLM_MODEL")
@@ -118,11 +130,6 @@ class LLMProviderConfig(BaseModel):
         env_timeout = os.getenv("AGENTSHIELD_LLM_TIMEOUT") or os.getenv("LLM_TIMEOUT")
         timeout = float(env_timeout) if env_timeout and env_timeout.strip() else 30.0
 
-        default_endpoint = (
-            "http://localhost:11434/v1/chat/completions"
-            if provider_type.lower() == "ollama"
-            else "https://api.openai.com/v1/chat/completions"
-        )
         endpoint = (
             os.getenv("AGENTSHIELD_LLM_ENDPOINT")
             or os.getenv("LLM_ENDPOINT")

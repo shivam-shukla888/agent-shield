@@ -147,6 +147,7 @@ class TestSecretNonDisclosure:
         cfg = AppConfig(
             api_key=SecretStr("leaked-key"),
             database_url=SecretStr("postgresql://u:p@h/d"),
+            llm_api_key=SecretStr("gsk_dummy"),
         )
         d = cfg.safe_dict()
         safe_str = str(d)

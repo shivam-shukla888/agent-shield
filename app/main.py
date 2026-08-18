@@ -22,6 +22,9 @@ from app.engine.finding import FindingEngine
 from app.engine.risk import RiskEngine
 from app.engine.scan import ScanEngine
 from app.evaluation.deterministic import DeterministicEvaluator
+from app.evaluation.factory import build_llm_provider
+from app.evaluation.hybrid import HybridEvaluationStrategy
+from app.evaluation.llm import LLMEvaluator
 from app.observability.middleware import RequestIDMiddleware
 from app.observability.security_headers import SecurityHeadersMiddleware
 from app.repositories import (
@@ -114,7 +117,13 @@ def create_app(
         default_config = TargetConfig(name="Default Target", endpoint="http://localhost:8000/chat")
         adapter = GenericHTTPAdapter(config=default_config)
         attack_engine = AttackEngine(adapter=adapter)
-        evaluator = DeterministicEvaluator()
+        det_eval = DeterministicEvaluator()
+        llm_provider = build_llm_provider()
+        llm_eval = LLMEvaluator(provider=llm_provider)
+        evaluator = HybridEvaluationStrategy(
+            deterministic_evaluator=det_eval,
+            llm_evaluator=llm_eval,
+        )
         finding_engine = FindingEngine()
         risk_engine = RiskEngine()
         scan_engine = ScanEngine(

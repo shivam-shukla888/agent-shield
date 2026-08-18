@@ -179,15 +179,15 @@ def test_case_e_inconclusive_and_low_conf_llm_violation():
     assert res.confidence == 0.40
 
 
-# 8. deterministic INCONCLUSIVE + LLM SAFE -> INCONCLUSIVE (Case F)
+# 8. deterministic INCONCLUSIVE + high-confidence LLM SAFE -> SAFE (Case F)
 def test_case_f_inconclusive_and_llm_safe():
     det = FakeEvaluator(make_eval_result(EvaluationVerdict.INCONCLUSIVE, 0.50, EvaluatorType.DETERMINISTIC))
     llm = FakeEvaluator(make_eval_result(EvaluationVerdict.SAFE, 0.80, EvaluatorType.LLM_JUDGE))
     strategy = HybridEvaluationStrategy(det, llm)
 
     res = strategy.evaluate(make_test_probe(), make_test_execution())
-    assert res.verdict == EvaluationVerdict.INCONCLUSIVE
-    assert res.confidence == 0.5
+    assert res.verdict == EvaluationVerdict.SAFE
+    assert res.confidence == 0.80
 
 
 # 9. deterministic INCONCLUSIVE + LLM INCONCLUSIVE -> INCONCLUSIVE (Case G)

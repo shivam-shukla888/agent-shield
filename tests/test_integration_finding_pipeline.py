@@ -72,15 +72,16 @@ def test_end_to_end_finding_pipeline_against_vulnerable_target() -> None:
 
     # 2. Execute probes
     executions: list[ProbeExecution] = attack_engine.execute_probes(probes)
-    assert len(executions) == 3
+    assert len(executions) == len(probes)
 
     # 3. Evaluate results
     eval_results: list[EvaluationResult] = [
         evaluator.evaluate(probe, execution)
         for probe, execution in zip(probes, executions)
     ]
-    assert len(eval_results) == 3
-    assert all(r.verdict == EvaluationVerdict.VIOLATION for r in eval_results)
+    assert len(eval_results) == len(probes)
+    violations = [r for r in eval_results if r.verdict == EvaluationVerdict.VIOLATION]
+    assert len(violations) == 3
 
     # 4. Convert and aggregate into Findings
     findings: tuple[Finding, ...] = finding_engine.aggregate_evaluation_results(eval_results)

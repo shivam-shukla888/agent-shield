@@ -117,10 +117,11 @@ def test_end_to_end_full_scan_pipeline_against_vulnerable_target() -> None:
     assert scan_result.completed_at >= scan_result.started_at
 
     # 4. Assert Executions & Evaluations
-    assert len(scan_result.executions) == 3
+    assert len(scan_result.executions) == len(probes)
     assert all(e.status == ExecutionStatus.COMPLETED for e in scan_result.executions)
-    assert len(scan_result.evaluations) == 3
-    assert all(ev.verdict == EvaluationVerdict.VIOLATION for ev in scan_result.evaluations)
+    assert len(scan_result.evaluations) == len(probes)
+    violations = [ev for ev in scan_result.evaluations if ev.verdict == EvaluationVerdict.VIOLATION]
+    assert len(violations) == 3
 
     # 5. Assert Findings
     assert len(scan_result.findings) == 3

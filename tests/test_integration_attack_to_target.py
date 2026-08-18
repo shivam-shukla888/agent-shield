@@ -65,8 +65,8 @@ def test_end_to_end_probe_execution_suite_against_local_target() -> None:
 
     executions: list[ProbeExecution] = engine.execute_probes(probes)
 
-    # 1. Assert all three probes executed
-    assert len(executions) == 3
+    # 1. Assert all basic probes executed
+    assert len(executions) == len(probes)
 
     # 2. Assert all three executions completed successfully with target results
     for exec_item in executions:

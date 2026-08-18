@@ -120,10 +120,10 @@ def test_probe_top_level_immutability() -> None:
         probe.prompt = "Modified prompt"  # type: ignore[misc]
 
 
-def test_exactly_three_initial_probes_exist() -> None:
-    """Test 7: Exactly three initial probes exist in the basic registry."""
+def test_initial_probes_exist() -> None:
+    """Test 7: Initial probes exist in the basic registry."""
     probes = get_basic_probes()
-    assert len(probes) == 3
+    assert len(probes) >= 3
 
 
 def test_probe_ids_unique() -> None:
@@ -151,5 +151,6 @@ def test_registry_order_is_deterministic() -> None:
         "PROMPT_LEAK_001",
         "INSTRUCTION_OVERRIDE_001",
         "TOOL_AUTH_001",
+        "UNAUTHORIZED_CREDIT_GRANT_001",
     ]
     assert [p.id for p in probes1] == [p.id for p in probes2]

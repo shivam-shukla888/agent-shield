@@ -44,9 +44,9 @@ class TestAppConfigDefaults:
         cfg = AppConfig()
         assert cfg.database_url is None
 
-    def test_default_llm_provider_fake(self):
+    def test_default_llm_provider_groq(self):
         cfg = AppConfig()
-        assert cfg.llm_provider == "fake"
+        assert cfg.llm_provider == "groq"
 
     def test_default_llm_timeout(self):
         cfg = AppConfig()

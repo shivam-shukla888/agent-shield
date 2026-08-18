@@ -36,7 +36,7 @@ class AppConfig(BaseModel):
 
     database_url: Optional[SecretStr] = Field(default=None, description="PostgreSQL or SQL storage connection URL")
 
-    llm_provider: str = Field(default="fake", description="LLM provider backend type")
+    llm_provider: str = Field(default="groq", description="LLM provider backend type")
     llm_api_key: Optional[SecretStr] = Field(default=None, description="LLM provider authentication API key")
     llm_model: Optional[str] = Field(default=None, description="LLM provider model identifier")
     llm_timeout: float = Field(default=30.0, description="LLM request timeout in seconds")
@@ -144,10 +144,16 @@ class AppConfig(BaseModel):
         raw_db_url = os.getenv("DATABASE_URL") or os.getenv("POSTGRES_URL")
         database_url = SecretStr(raw_db_url.strip()) if raw_db_url and raw_db_url.strip() else None
 
-        llm_provider = os.getenv("AGENTSHIELD_LLM_PROVIDER") or "fake"
-
+        raw_llm_provider = os.getenv("AGENTSHIELD_LLM_PROVIDER") or os.getenv("LLM_PROVIDER")
         raw_llm_key = os.getenv("AGENTSHIELD_LLM_API_KEY") or os.getenv("LLM_API_KEY")
         llm_api_key = SecretStr(raw_llm_key.strip()) if raw_llm_key and raw_llm_key.strip() else None
+
+        if raw_llm_provider:
+            llm_provider = raw_llm_provider.strip()
+        elif llm_api_key is not None:
+            llm_provider = "groq"
+        else:
+            llm_provider = "fake"
 
         llm_model = os.getenv("AGENTSHIELD_LLM_MODEL") or None
 

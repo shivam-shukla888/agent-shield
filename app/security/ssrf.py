@@ -117,8 +117,14 @@ class SSRFValidator:
     Validator component evaluating target URL destinations for SSRF safety.
     """
 
-    def __init__(self, dns_resolver: Optional[DNSResolverCallable] = None) -> None:
+    def __init__(self, dns_resolver: Optional[DNSResolverCallable] = None, allow_local: Optional[bool] = None) -> None:
+        import os
         self.dns_resolver = dns_resolver or default_dns_resolver
+        if allow_local is None:
+            env_val = os.getenv("AGENTSHIELD_ALLOW_LOCAL_TARGETS") or os.getenv("AGENTSHIELD_DEMO_GUARDRAILS") or "false"
+            self.allow_local = env_val.strip().lower() in ("true", "1", "yes")
+        else:
+            self.allow_local = allow_local
 
     def validate_url(self, url: str) -> Tuple[bool, str]:
         """
@@ -170,7 +176,11 @@ class SSRFValidator:
         except ValueError:
             return False, "Malformed TCP port number"
 
-        # 5. Hostname Alias Blocklist Check
+        # 5. Localhost / Loopback Override for Local Testing
+        if self.allow_local and (hostname_lower in ("localhost", "127.0.0.1", "test_target") or hostname_lower.endswith(".local")):
+            return True, ""
+
+        # 6. Hostname Alias Blocklist Check
         if hostname_lower in SSRFPolicy.BLOCKED_HOSTNAMES:
             return False, f"Hostname '{hostname_lower}' is blocked by SSRF policy"
 
